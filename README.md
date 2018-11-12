@@ -14,4 +14,4 @@ More coming soon ... stay tuned
 from bix.classifiers.rslvq import RSLVQ
 ```
 
-<p style="color:#FF0000";>Note, this is work in progress, names will be changing soon.</font>
+<p style="color:#FF0000";>Note, this is work in progress, names will be changing soon.</p>
