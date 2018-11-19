@@ -47,11 +47,11 @@ from skmultiflow.meta import OzaBaggingAdwin
 from skmultiflow.meta import AdaptiveRandomForest
 from skmultiflow.meta.oza_bagging_adwin import OzaBaggingAdwin
 from skmultiflow.trees.hoeffding_adaptive_tree import HAT
-from stream_rslvq import RSLVQ as sRSLVQ
+#from stream_rslvq import RSLVQ as sRSLVQ
 from skmultiflow.lazy.sam_knn import SAMKNN
 import itertools
 import datetime
-from Study import Study
+from bix.preprocessing.Study import Study
 import re
 from datetime import datetime
 from joblib import Parallel, delayed
@@ -174,4 +174,4 @@ if __name__ == "__main__":
     cv = CrossValidation(clfs=[OzaBaggingAdwin(
         base_estimator=KNN()), HAT(), AdaptiveRandomForest()])
     cv.test()
-cv.save_summary()
+    cv.save_summary()

@@ -7,11 +7,11 @@ sys.path.append('..\\multiflow-rslvq')
 sys.path.append('..\\RSLVQ')
 sys.path.append('..\\Reactive_RSLVQ')
 sys.path.append("..\\stream_utilities")
-from ReoccuringDriftStream import ReoccuringDriftStream 
-from geometric_median import *
-from kswin import KSWIN
-from rrslvq import RRSLVQ as rRSLVQ
-from rslvq import RSLVQ as bRSLVQ
+from bix.preprocessing.ReoccuringDriftStream import ReoccuringDriftStream 
+from bix.preprocessing.geometric_median import *
+#from kswin import KSWIN
+#from rrslvq import RRSLVQ as rRSLVQ
+#from rslvq import RSLVQ as bRSLVQ
 from skmultiflow.core.base import StreamModel
 from skmultiflow.core.pipeline import Pipeline
 from skmultiflow.data.concept_drift_stream import ConceptDriftStream

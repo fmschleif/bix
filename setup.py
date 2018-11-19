@@ -16,4 +16,7 @@ setup(name='bix',
       author_email='moritz.heusinger@gmail.com',
       license='MIT',
       packages=['bix'],
+      install_requires=[
+          'joblib',
+      ],
       zip_safe=False)

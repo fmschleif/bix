@@ -44,12 +44,12 @@ from skmultiflow.lazy.knn import KNN
 from skmultiflow.meta import OzaBaggingAdwin
 from skmultiflow.meta.oza_bagging_adwin import OzaBaggingAdwin
 from skmultiflow.trees.hoeffding_adaptive_tree import HAT
-from stream_rslvq import RSLVQ as sRSLVQ
+#from stream_rslvq import RSLVQ as sRSLVQ
 import itertools
 import os
 import datetime
 import time
-from Study import Study
+from bix.preprocessing.Study import Study
 
 class GridSearch(Study):
 

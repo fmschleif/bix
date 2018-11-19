@@ -8,7 +8,7 @@ Created on Mon Nov 19 08:26:44 2018
 
 import unittest
 from bix.preprocessing.CrossValidation import CrossValidation
-from bix.classifiers.bach_adaptive_rslvq import RSLVQ
+from bix.classifiers.batch_adaptive_rslvq import RSLVQ
 from skmultiflow.data.agrawal_generator import AGRAWALGenerator
 
 clfs = [RSLVQ(gradient_descent='Adadelta'),
@@ -17,3 +17,6 @@ clfs = [RSLVQ(gradient_descent='Adadelta'),
 streams = [AGRAWALGenerator()]
 
 cv = CrossValidation(clfs=clfs, streams=streams)
+
+cv.test()
+cv.save_summary()
