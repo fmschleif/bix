@@ -16,8 +16,6 @@ from skmultiflow.core.base import StreamModel
 from sklearn.utils import validation
 from sklearn.utils.validation import check_is_fitted
 
-# TODO: add sigma for every prototype (TODO from https://github.com/MrNuggelz/sklearn-lvq)
-
 class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
     """Robust Soft Learning Vector Quantization
     Parameters
@@ -37,8 +35,8 @@ class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         If None, the random number generator is the RandomState instance used
         by `np.random`.
     gradient_descent : string, Gradient Descent describes the used technique
-        to perform the gradient descent. Possible values: 'SGD' (default),
-        'RMSprop', 'Adadelta'.
+        to perform the gradient descent. Possible values: 'SGD' (default), 
+        'Adadelta'.
     Attributes
     ----------
     w_ : array-like, shape = [n_prototypes, n_features]
@@ -53,19 +51,26 @@ class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
     """
 
     def __init__(self, prototypes_per_class=1, initial_prototypes=None,
-                 sigma=1.0, random_state=None,
-                 decay_rate=0.9, batch_size=1):
+                 sigma=1.0, gradient_descent='SGD', random_state=None,
+                 decay_rate=0.9, learning_rate=0.001, batch_size=1):
         self.sigma = sigma
         self.random_state = random_state
-        self.batch_size = batch_size
+        self.learning_rate = learning_rate
         self.epsilon = 1e-8
         self.initial_prototypes = initial_prototypes
         self.prototypes_per_class = prototypes_per_class
         self.initial_fit = True
         self.classes_ = []
         self.decay_rate = decay_rate
-        if(decay_rate >= 1.0 or decay_rate <= 0):
-            raise ValueError('Decay rate must be greater than 0 and less than 1')
+        self.batch_size = batch_size
+        allowed_gradient_descent = ['SGD', 'Adadelta']
+        if gradient_descent in allowed_gradient_descent:
+            self.gradient_descent = gradient_descent
+        else:
+            raise ValueError('{} is not a valid parameter for '
+                             'gradient_descent, please use one '
+                             'of the following parameters:\n {}'
+                             .format(gradient_descent, allowed_gradient_descent))
         if(sigma <= 0):
             raise ValueError('Sigma must be greater than 0')
         if(batch_size <= 0):
@@ -77,65 +82,153 @@ class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         """Returns the prototypes"""
         return self.w_
 
-    def _optimize(self, X, y, random_state):            
-        """Implementation of Batch Adadelta"""
+    def _optimize(self, X, y, random_state):
+        if(self.batch_size > y.size):
+            raise ValueError('Batch size higher than data passed') 
+        k = 0
         nb_prototypes = self.c_w_.size
         
-        if(self.batch_size > y.size):
-            raise ValueError('Batch size higher than data passed')
+        if(self.gradient_descent=='SGD'):
+            c = 1 / self.sigma # learning rate
+            """Implementation of Stochastical Gradient Descent"""
+            while((k + self.batch_size) <= y.size): #sample batch from data
+                X_batch, y_batch = X[k:k + self.batch_size, :], y[k:k + self.batch_size]
+                n_data, n_dim = X_batch.shape
+                prototypes = self.w_.reshape(nb_prototypes, n_dim)
+                sum_per_class = np.zeros(shape=(self.classes_.size, n_dim)) # sum up datapoints per class
+                count_per_class = np.zeros(shape=(self.classes_.size, 1)) # count datapoints per class
+                for i in range(n_data):
+                    xi = X_batch[i]
+                    c_xi = int(y_batch[i])
+                    c_idx = np.where(self.classes_ == c_xi)[0]
+                    sum_per_class[c_idx] += xi
+                    count_per_class[c_idx] += 1
+                
+                update = np.zeros(shape=(self.classes_.size, n_dim))
+
+                for j in range(prototypes.shape[0]):
+                    label = self.c_w_[j]
+                    c_idx = np.where(self.classes_ == label)[0]
+                    if(count_per_class[c_idx] > 0):
+                        update[c_idx] = sum_per_class[c_idx] / count_per_class[c_idx] # calc mean
+                        x_up = update[c_idx].flatten()
+                        d = (x_up - prototypes[j])
+                        # Attract prototype to data point
+                        final_up = c * (self._p(j=j, e=x_up, prototypes=self.w_, y=label) -
+                               self._p(j=j, e=x_up, prototypes=self.w_)) * d * count_per_class[c_idx].ravel()
+                        
+                        if(np.any(np.isnan(final_up))):
+                            self.w_[j] += final_up
+                            
+                    else:
+                        # Distance prototype from data point
+                        x_up = np.sum(sum_per_class, axis=0)
+                        d = (x_up - prototypes[j])
+                        final_up = c * self._p(j=j, e=x_up, prototypes=self.w_) * d * count_per_class[c_idx].ravel()   
+                        
+                        if(np.any(np.isnan(final_up))):
+                            self.w_[j] += final_up
+                        
+                k += self.batch_size          
             
-        k = 0
-        while((k + self.batch_size) <= y.size): #sample batch from data
-            X_batch, y_batch = X[k:k + self.batch_size, :], y[k:k + self.batch_size]
-            n_data, n_dim = X_batch.shape
+        elif(self.gradient_descent=='Adadelta'):
+            """Implementation of Adadelta"""
+            n_data, n_dim = X.shape
             prototypes = self.w_.reshape(nb_prototypes, n_dim)
-            sum_per_class = np.zeros(shape=(self.classes_.size, n_dim)) # sum up datapoints per class
-            count_per_class = np.zeros(shape=(self.classes_.size, 1)) # count datapoints per class
-            for i in range(n_data):
-                xi = X_batch[i]
-                c_xi = int(y_batch[i])
-                c_idx = np.where(self.classes_ == c_xi)[0]
-                sum_per_class[c_idx] += xi
-                count_per_class[c_idx] += 1
-                
-            update = np.zeros(shape=(self.classes_.size, n_dim))
             
-            for j in range(prototypes.shape[0]):
-                label = self.c_w_[j]
-                c_idx = np.where(self.classes_ == label)[0]
-                if(count_per_class[c_idx] > 0):
-                    update[c_idx] = sum_per_class[c_idx] / count_per_class[c_idx] # calc mean
-                    x_up = update[c_idx].flatten()
-                    d = (x_up - prototypes[j])
-                    # Attract prototype to data point
-                    gradient = (self._p(j, x_up, prototypes=self.w_, y=label) -
-                                 self._p(j, x_up, prototypes=self.w_)) * d * count_per_class[c_idx].ravel()  
-                else:
-                    # Distance prototype from data point
-                    x_up = np.sum(sum_per_class, axis=0)
-                    d = (x_up - prototypes[j])
-                    gradient = - self._p(j, x_up, prototypes=self.w_) * d * count_per_class[c_idx].ravel()  
+            while((k + self.batch_size) <= y.size): #sample batch from data
+                X_batch, y_batch = X[k:k + self.batch_size, :], y[k:k + self.batch_size]
+                n_data, n_dim = X_batch.shape
+                prototypes = self.w_.reshape(nb_prototypes, n_dim)
+                sum_per_class = np.zeros(shape=(self.classes_.size, n_dim)) # sum up datapoints per class
+                count_per_class = np.zeros(shape=(self.classes_.size, 1)) # count datapoints per class
+                for i in range(n_data):
+                    xi = X_batch[i]
+                    c_xi = int(y_batch[i])
+                    c_idx = np.where(self.classes_ == c_xi)[0]
+                    sum_per_class[c_idx] += xi
+                    count_per_class[c_idx] += 1
+                
+                update = np.zeros(shape=(self.classes_.size, n_dim))
+
+                for j in range(prototypes.shape[0]):
+                    label = self.c_w_[j]
+                    c_idx = np.where(self.classes_ == label)[0]
+                    if(count_per_class[c_idx] > 0):
+                        update[c_idx] = sum_per_class[c_idx] / count_per_class[c_idx] # calc mean
+                        x_up = update[c_idx].flatten()
+                        d = (x_up - prototypes[j])
+                        # Attract prototype to data point
+                        gradient = (self._p(j, x_up, prototypes=self.w_, y=c_xi) -
+                                     self._p(j, x_up, prototypes=self.w_)) * d
+                                    
+                        # Accumulate gradient
+                        self.squared_mean_gradient[j] = self.decay_rate * self.squared_mean_gradient[j] + \
+                                    (1 - self.decay_rate) * gradient ** 2
+                        
+                        # Compute update/step
+                        step = ((self.squared_mean_step[j] + self.epsilon) / \
+                                  (self.squared_mean_gradient[j] + self.epsilon)) ** 0.5 * gradient
+                                  
+                        # Accumulate updates
+                        self.squared_mean_step[j] = self.decay_rate * self.squared_mean_step[j] + \
+                        (1 - self.decay_rate) * step ** 2
+                        
+                        # Attract/Distract prototype to/from data point
+                        self.w_[j] += step
+                            
+                    else:
+                        # Distance prototype from data point
+                        x_up = np.sum(sum_per_class, axis=0)
+                        d = (x_up - prototypes[j])
+                        gradient = - self._p(j, x_up, prototypes=self.w_) * d
+                        
+                         # Accumulate gradient
+                        self.squared_mean_gradient[j] = self.decay_rate * self.squared_mean_gradient[j] + \
+                                    (1 - self.decay_rate) * gradient ** 2
+                        
+                        # Compute update/step
+                        step = ((self.squared_mean_step[j] + self.epsilon) / \
+                                  (self.squared_mean_gradient[j] + self.epsilon)) ** 0.5 * gradient
+                                  
+                        # Accumulate updates
+                        self.squared_mean_step[j] = self.decay_rate * self.squared_mean_step[j] + \
+                        (1 - self.decay_rate) * step ** 2
+                        
+                        # Attract/Distract prototype to/from data point
+                        self.w_[j] += step
+                        
+                k += self.batch_size          
+
+
+                for j in range(prototypes.shape[0]):
+                    d = (xi - prototypes[j])
                     
-                self.squared_mean_gradient[j] = self.decay_rate * self.squared_mean_gradient[j] + \
-                            (1 - self.decay_rate) * gradient ** 2
-                
-                # Compute update/step
-                step = ((self.squared_mean_step[j] + self.epsilon) / \
-                          (self.squared_mean_gradient[j] + self.epsilon)) ** 0.5 * gradient
-                          
-                # Accumulate updates
-                self.squared_mean_step[j] = self.decay_rate * self.squared_mean_step[j] + \
+                    if self.c_w_[j] == c_xi:
+                        gradient = (self._p(j, xi, prototypes=self.w_, y=c_xi) -
+                                     self._p(j, xi, prototypes=self.w_)) * d
+                    else:
+                        gradient = - self._p(j, xi, prototypes=self.w_) * d
+                        
+                     # Accumulate gradient
+                    self.squared_mean_gradient[j] = self.decay_rate * self.squared_mean_gradient[j] + \
+                                (1 - self.decay_rate) * gradient ** 2
+                    
+                    # Compute update/step
+                    step = ((self.squared_mean_step[j] + self.epsilon) / \
+                              (self.squared_mean_gradient[j] + self.epsilon)) ** 0.5 * gradient
+                              
+                    # Accumulate updates
+                    self.squared_mean_step[j] = self.decay_rate * self.squared_mean_step[j] + \
                     (1 - self.decay_rate) * step ** 2
-                
-                # Attract/Distract prototype to/from data point
-                self.w_[j] += step
-                      
-            k += self.batch_size
+                    
+                    # Attract/Distract prototype to/from data point
+                    self.w_[j] += step
      
     def _costf(self, x, w, **kwargs):
         d = (x - w)[np.newaxis].T 
         d = d.T.dot(d) 
-        return -d / (2 * self.sigma)
+        return - d / (2 * self.sigma)
 
     def _p(self, j, e, y=None, prototypes=None, **kwargs):
         if prototypes is None:
@@ -165,6 +258,13 @@ class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         C : array, shape = (n_samples)
             Returns predicted values.
         """
+#        check_is_fitted(self, ['w_', 'c_w_'])
+#        x = validation.check_array(x)
+#        if x.shape[1] != self.w_.shape[1]:
+#            raise ValueError("X has wrong number of features\n"
+#                             "found=%d\n"
+#                             "expected=%d" % (self.w_.shape[1], x.shape[1]))
+
         def foo(e):
             fun = np.vectorize(lambda w: self._costf(e, w),
                                signature='(n)->()')

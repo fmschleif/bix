@@ -1,4 +1,5 @@
 import numpy as np
+
 def incrementalMean(x,xm=None,n=None,first = True):
     if n is None:
         n = 1

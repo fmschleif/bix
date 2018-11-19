@@ -16,11 +16,11 @@ from sklearn.utils import validation
 from sklearn.utils.multiclass import unique_labels
 from sklearn.utils.validation import check_is_fitted
 import matplotlib.pyplot as plt
-from ReoccuringDriftStream import ReoccuringDriftStream 
+from bix.preprocessing.ReoccuringDriftStream import ReoccuringDriftStream 
 
-from kswin import KSWIN
-from rrslvq import RRSLVQ as rRSLVQ
-from rslvq import RSLVQ as bRSLVQ
+#from kswin import KSWIN
+#from rrslvq import RRSLVQ as rRSLVQ
+#from rslvq import RSLVQ as bRSLVQ
 from skmultiflow.core.base import StreamModel
 from skmultiflow.core.pipeline import Pipeline
 from skmultiflow.data.concept_drift_stream import ConceptDriftStream
