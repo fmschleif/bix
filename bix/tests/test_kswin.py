@@ -2,13 +2,10 @@ from random import random as rnd
 import sys
 from skmultiflow.data.sea_generator import SEAGenerator
 import numpy as np
-from bix.detectors.KSWIN import KSWIN
+from bix.detectors.kswin import KSWIN
 
 
 def kswin_test():
-
-if __name__ == "__main__":
-
     kswin = KSWIN(alpha=0.001)
     stream = SEAGenerator(classification_function = 2, random_state = 112, balance_classes = False,noise_percentage = 0.28)
     stream.prepare_for_use()
@@ -30,3 +27,7 @@ if __name__ == "__main__":
             detections.append(i)
 
     print(len(detections))
+
+if __name__ == "__main__":
+    kswin_test()
+    

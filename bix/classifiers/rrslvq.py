@@ -12,7 +12,6 @@ from sklearn.utils.validation import check_is_fitted
 from scipy.spatial.distance import cdist
 from bix.detectors.kswin import KSWIN
 from skmultiflow.core.base import StreamModel
-
 from sklearn import preprocessing
 
 #!sr/bin/env python3
@@ -20,14 +19,18 @@ from sklearn import preprocessing
 """
 Created on Fri Jun 22 09:35:11 2018
 
-@author: moritz
+@author: christoph
+
+Sources 
+https://github.com/mrwojo/geometric_median/blob/master/geometric_median/geometric_median.py
+https://github.com/MrNuggelz/sklearn-lvq)
 """
 
-# TODO: add sigma for every prototype (TODO from https://github.com/MrNuggelz/sklearn-lvq)
+
 
 
 class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
-    """Robust Soft Learning Vector Quantization
+    """Reactive Robust Soft Learning Vector Quantization
     Parameters
     ----------
     prototypes_per_class : int or list of int, optional (default=1)
@@ -39,26 +42,16 @@ class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         means. Class label must be placed as last entry of each prototype.
     sigma : float, optional (default=0.5)
         Variance for the distribution.
-    max_iter : int, optional (default=2500)
-        The maximum number of iterations.
-    gtol : float, optional (default=1e-5)
-        Gradient norm must be less than gtol before successful termination
-        of bfgs.
-    display : boolean, optional (default=False)
-        print information about the bfgs steps.
     random_state : int, RandomState instance or None, optional
         If int, random_state is the seed used by the random number generator;
         If RandomState instance, random_state is the random number generator;
         If None, the random number generator is the RandomState instance used
         by `np.random`.
-    gradient_descent : string, Gradient Descent describes the used technique
-        to perform the gradient descent. Possible values: 'SGD' (default),
-        and 'l-bfgs-b'.
-    drift_handling : string, Type of concept drift DETECTION. 
+    drift_detector : string, Type of concept drift DETECTION. 
         None means no concept drift detection
         If KS, use of Kolmogorov Smirnov test
-        If ADWIN, use of Adaptive Sliding Window dimension wise
         IF DIST, monitoring class distances to detect outlier.
+    
 
 
     Attributes
@@ -75,33 +68,32 @@ class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
     """
 
     def __init__(self, prototypes_per_class=1, initial_prototypes=None,
-                 sigma=1.0, max_iter=2500, gtol=1e-5,
-                 display=False, random_state=None,drift_handling = "KS",confidence=0.05,replace = True):
+                 sigma=1.0, random_state=None,drift_detector = "KS",confidence=0.05,replace = True):
         self.sigma = sigma
         
         self.random_state = random_state
         self.initial_prototypes = initial_prototypes
         self.prototypes_per_class = prototypes_per_class
-        self.display = display
-        self.max_iter = max_iter
-        self.gtol = gtol
         self.initial_fit = True
         self.classes_ = []
+
+        #### Reactive extensions  ####
+        self.confidence = confidence
         self.counter = 0
         self.cd_detects = []
-        self.drift_handling = drift_handling
+        self.drift_detector = drift_detector
         self.drift_detected  = False
         self.replace = replace
         self.init_drift_detection = True
-        self.some = []
-        self.bg_data = [[],[]]
-        self.confidence = confidence
-        if not isinstance(self.display, bool):
-            raise ValueError("display must be a boolean")
-        if not isinstance(self.max_iter, int) or self.max_iter < 1:
-            raise ValueError("max_iter must be an positive integer")
-        if not isinstance(self.gtol, float) or self.gtol <= 0:
-            raise ValueError("gtol must be a positive float")
+
+        if self.drift_detector != "KS" and self.drift_detector != "DIST":
+            raise ValueError("Drift detector must be either KS or DIST!")
+        
+        if self.confidence <= 0 or self.confidence >= 1:
+            raise ValueError("Confidence of test must be between 0 and 1!")
+        
+
+
 
 
     def _optfun(self, variables, training_data, label_equals_prototype):
@@ -373,7 +365,7 @@ class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
             raise ValueError('Class {} was not learned - please declare all classes in first call of fit/partial_fit'.format(y))
 
         self.counter = self.counter + 1
-        if self.drift_handling is not None and self.concept_drift_detection(X,y):
+        if self.drift_detector is not None and self.concept_drift_detection(X,y):
             self.cd_handling(X,y)
             self.cd_detects.append(self.counter)
             #print(self.w_.shape)
@@ -399,14 +391,14 @@ class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
 
     def concept_drift_detection(self,X,Y):
         if self.init_drift_detection:
-            if self.drift_handling == "KS":
+            if self.drift_detector == "KS":
                 self.cdd = [KSWIN(alpha=self.confidence) for elem in X.T]
-            if self.drift_handling == "DIST":
+            if self.drift_detector == "DIST":
                 self.cdd = [KSWIN(self.confidence) for c in self.classes_]
         self.init_drift_detection = False
         self.drift_detected = False
         
-        if self.drift_handling == "DIST":
+        if self.drift_detector == "DIST":
             try:
                 class_prototypes = [self.w_[self.c_w_==elem] for elem in self.classes_]
                 new_distances = dict([(c,self.calcDistances(pts,X[Y==c])) for c,pts in zip(self.classes_,class_prototypes)])
@@ -450,13 +442,8 @@ class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
     def geometric_median(self,points):
         """
     Calculates the geometric median of an array of points.
-
-    method specifies which algorithm to use:
-        * 'auto' -- uses a heuristic to pick an algorithm
-        * 'minimize' -- scipy.optimize the sum of distances
-        * 'weiszfeld' -- Weiszfeld's algorithm
-    given by https://github.com/mrwojo/geometric_median/blob/master/geometric_median/geometric_median.py
-    """
+    'minimize' -- scipy.optimize the sum of distances
+        """
 
         points = np.asarray(points)
 

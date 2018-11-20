@@ -13,7 +13,7 @@ import pandas as pd
 from joblib import Parallel, delayed
 
 from skmultiflow.evaluation.evaluate_prequential import EvaluatePrequential
-from Study import Study
+from bix.utils.study import Study
 
 
 class GridSearch(Study):

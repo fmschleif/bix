@@ -12,12 +12,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, cohen_kappa_score
 from skmultiflow.evaluation.evaluate_prequential import EvaluatePrequential
 from skmultiflow.data.sea_generator import SEAGenerator
-from rslvq import RSLVQ
+from bix.classifiers.rslvq import RSLVQ
 import numpy as np
-from arslvq import RSLVQ as ARSLVQ
+from bix.classifiers.adaptive_rslvq import RSLVQ as ARSLVQ
 
 
-class TestBatchRSLVQ(unittest.TestCase):
+class TestRSLVQ(unittest.TestCase):
 
     def setUp(self):
         # is executed first
@@ -86,7 +86,7 @@ class TestBatchRSLVQ(unittest.TestCase):
         RSLVQ(n_epochs=2)
 
 
-class TestBatchARSLVQ(unittest.TestCase):
+class TestARSLVQ(unittest.TestCase):
 
     def setUp(self):
         # is executed first

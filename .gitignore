@@ -3,6 +3,41 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+settings.json 
+launch.json
+.DS_Store
+.huskyrc.json
+out
+node_modules
+*.pyc
+**/.vscode/.ropeproject/**
+**/testFiles/**/.cache/**
+*.noseids
+.vscode-test
+__pycache__
+npm-debug.log
+**/.mypy_cache/**
+!yarn.lock
+coverage/
+.vscode-test/**
+**/.venv*/
+precommit.hook
+pythonFiles/experimental/ptvsd/**
+debug_coverage*/**
+languageServer/**
+languageServer.*/**
+bin/**
+obj/**
+.pytest_cache
+tmp/**
+.python-version
+.vs/
+
+# Study results 
+
+search/
+study/
+
 # C extensions
 *.so
 

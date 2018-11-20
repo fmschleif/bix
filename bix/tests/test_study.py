@@ -1,26 +1,14 @@
 from __future__ import division
 
-import copy
-import datetime
-import itertools
-import math
-import os
-import sys
-from random import random as rnd
-
 import numpy as np
-from bix.classifier.rrslvq import RRSLVQ
-from CrossValidation import CrossValidation
-from GridSearch import GridSearch
-from rrslvq import RRSLVQ as rRSLVQ
-from rslvq import RSLVQ as bRSLVQ
-from rslvq_stream import RSLVQ as adaRSLVQ
+from bix.classifiers.rrslvq import RRSLVQ
+from bix.utils.crossvalidation import CrossValidation
+from bix.utils.gridsearch import GridSearch
+from bix.classifiers.rslvq import RSLVQ 
 from skmultiflow.bayes import NaiveBayes
 from skmultiflow.meta.adaptive_random_forests import AdaptiveRandomForest
-from skmultiflow.meta.oza_bagging_adwin import OzaBaggingAdwin
 from skmultiflow.trees.hoeffding_adaptive_tree import HAT
 
-from stream_rslvq import RSLVQ as sRSLVQ
 
 
 def parameter_grid_search_test():

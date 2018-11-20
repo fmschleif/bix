@@ -3,7 +3,7 @@ import copy
 import sys
 import os
 
-from ReoccuringDriftStream import ReoccuringDriftStream 
+from bix.utils.reoccuringdriftstream import ReoccuringDriftStream 
 from skmultiflow.data.concept_drift_stream import ConceptDriftStream
 from skmultiflow.data.file_stream import FileStream
 #Abrupt Concept Drift Generators
@@ -29,6 +29,7 @@ class Study():
         self.date_format = "%Y-%m-%d %H-%M"
         self.metrics = ['accuracy', 'kappa_t', 'kappa_m', 'kappa']
         self.date = str(datetime.datetime.now().strftime(self.date_format))
+        self.chwd_root()
         try:
             if not os.path.exists(self.path):
                 os.mkdir(self.path)
