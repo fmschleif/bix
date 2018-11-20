@@ -2,18 +2,8 @@ import math
 import copy
 import sys
 import os
-from random import random as rnd
-sys.path.append('..\\multiflow-rslvq')
-sys.path.append('..\\RSLVQ')
-sys.path.append('..\\Reactive_RSLVQ')
-sys.path.append("..\\stream_utilities")
-from bix.preprocessing.ReoccuringDriftStream import ReoccuringDriftStream 
-from bix.preprocessing.geometric_median import *
-#from kswin import KSWIN
-#from rrslvq import RRSLVQ as rRSLVQ
-#from rslvq import RSLVQ as bRSLVQ
-from skmultiflow.core.base import StreamModel
-from skmultiflow.core.pipeline import Pipeline
+
+from ReoccuringDriftStream import ReoccuringDriftStream 
 from skmultiflow.data.concept_drift_stream import ConceptDriftStream
 from skmultiflow.data.file_stream import FileStream
 #Abrupt Concept Drift Generators
@@ -26,12 +16,7 @@ from skmultiflow.data.sea_generator import SEAGenerator
 from skmultiflow.data.hyper_plane_generator import HyperplaneGenerator
 # No Concept Drift Generators
 from skmultiflow.data.random_rbf_generator import RandomRBFGenerator
-from skmultiflow.drift_detection.adwin import ADWIN
-from skmultiflow.lazy.sam_knn import SAMKNN
-from skmultiflow.evaluation.evaluate_prequential import EvaluatePrequential
-from skmultiflow.evaluation import EvaluateHoldout
 import datetime
-from skmultiflow.data.hyper_plane_generator import HyperplaneGenerator
 class Study():
 ## TODO: List of string with stream names for individual studies
     def __init__(self,streams=None,path="/"):
@@ -40,6 +25,7 @@ class Study():
         else:
             self.streams = streams
         self.path = path
+        self.root_dir = os.path.dirname(os.path.abspath(__file__))
         self.date_format = "%Y-%m-%d %H-%M"
         self.metrics = ['accuracy', 'kappa_t', 'kappa_m', 'kappa']
         self.date = str(datetime.datetime.now().strftime(self.date_format))
@@ -91,7 +77,5 @@ class Study():
             raise FileNotFoundError("Real-world datasets can't loaded! Check directory Datasets/")
             return []
         
-
-if __name__ == "__main__":  
-    s = Study()
-    print(s)
+    def chwd_root(self):
+        os.chdir(self.root_dir)
