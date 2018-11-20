@@ -10,7 +10,7 @@ from sklearn.utils import validation
 from sklearn.utils.multiclass import unique_labels
 from sklearn.utils.validation import check_is_fitted
 from scipy.spatial.distance import cdist
-from kswin import KSWIN
+from bix.detectors.kswin import KSWIN
 from skmultiflow.core.base import StreamModel
 
 from sklearn import preprocessing
@@ -429,7 +429,7 @@ class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         
         return self.drift_detected
    
-    def cd_handling(self,X,Y):
+    def cd_handling(self, X,Y):
         if self.replace:
             labels = np.concatenate([np.repeat(l,self.prototypes_per_class) for l in self.classes_])        
             # new_prototypes = np.repeat(np.array([self.geometric_median(np.array([detector.window[-30:] for detector in self.cdd]).T)]),len(labels),axis=0)

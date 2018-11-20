@@ -7,7 +7,6 @@ Created on Fri Jun 22 09:35:11 2018
 """
 
 from __future__ import division
-
 import math
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin

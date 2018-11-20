@@ -5,7 +5,7 @@ from skmultiflow.lazy.knn import KNN
 from skmultiflow.evaluation.evaluate_prequential import EvaluatePrequential
 from skmultiflow.core.base import StreamModel
 from skmultiflow.core.pipeline import Pipeline
-from bix.classifiers.RRSLVQ import RRSLVQ
+from bix.classifiers.rrslvq import RRSLVQ
 
 def rrslvq_test():
     stream = SEAGenerator(classification_function = 2, random_state = 112, balance_classes = False, noise_percentage = 0.28)     
