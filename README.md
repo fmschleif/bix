@@ -17,5 +17,6 @@ from bix.classifiers.rslvq import RSLVQ
 <p style="color:#FF0000";>Note, this is work in progress, names will be changing soon.</p>
 
 ## To-Do
-- Test if package works
-- Add multiflow as a dependency
+- Add multiflow as a dependency (depends on https://github.com/scikit-multiflow/scikit-multiflow/issues/83)
+- Extend and enhance README
+- Further develop this package
