@@ -48,34 +48,3 @@ class ANWIN(BaseDriftDetector):
     
     def get_info(self):
          return "KSwin Change: Current P-Value "+str(self.p_value)
-
-
-if __name__ == "__main__":
-    from random import random as rnd
-    import sys
-    from skmultiflow.data.sea_generator import SEAGenerator
-    import numpy as np
-
- 
-    
-    anwin = ANWIN(alpha=0.001)
-    stream = SEAGenerator(classification_function = 2, random_state = 112, balance_classes = False,noise_percentage = 0.28)
-    stream.prepare_for_use()
-
-    stream.restart()
-    detections,mean = [],[]
-    
-    print("\n--------------------\n")
-    for i in range(10000):
-        data = stream.next_sample(10)
-        batch = data[0][0][0]
-        mean.append(batch)
-        anwin.add_element(batch)
-        if anwin.detected_change():
-            print("\rIteration {}".format(i))
-            print("\r ANWINReject Null Hyptheses")
-            print(np.mean(mean))
-            mean = []
-            detections.append(i)
-
-    print(len(detections))
