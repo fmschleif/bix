@@ -9,9 +9,9 @@ Created on Mon Nov 12 08:52:48 2018
 from setuptools import setup
 
 setup(name='bix',
-      version='0.1',
+      version='0.1.0',
       description='Business Intelligence Excellence',
-      url='https://github.com/foxriver76/bix',
+      url='https://github.com/ChristophRaab/bix',
       author='Moritz Heusinger',
       author_email='moritz.heusinger@gmail.com',
       license='MIT',
