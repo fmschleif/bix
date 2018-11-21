@@ -68,7 +68,7 @@ class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
     """
 
     def __init__(self, prototypes_per_class=1, initial_prototypes=None,
-                 sigma=1.0, random_state=None,drift_detector = "KS",confidence=0.05,replace = True):
+                 sigma=1.0, random_state=112,drift_detector = "KS",confidence=0.05,replace = True):
         self.sigma = sigma
         
         self.random_state = random_state
@@ -362,7 +362,9 @@ class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
             X, y, random_state = self._validate_train_parms(
                 X, y, classes=classes)
         else:
-            raise ValueError('Class {} was not learned - please declare all classes in first call of fit/partial_fit'.format(y))
+            #self.cd_handling(X,y)
+            print('Class {} was not learned - please declare all classes in first call of fit/partial_fit'.format(y))
+            #raise ValueError('Class {} was not learned - please declare all classes in first call of fit/partial_fit'.format(y))
 
         self.counter = self.counter + 1
         if self.drift_detector is not None and self.concept_drift_detection(X,y):
@@ -370,7 +372,7 @@ class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
             self.cd_detects.append(self.counter)
             #print(self.w_.shape)
         # X = preprocessing.scale(X)
-        self._optimize(X, y, random_state)    
+        self._optimize(X, y, self.random_state)    
         return self
 
     def save_data(self,X,y,random_state):

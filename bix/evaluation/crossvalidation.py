@@ -12,7 +12,7 @@ import pandas as pd
 from joblib import Parallel, delayed
 
 from skmultiflow.evaluation.evaluate_prequential import EvaluatePrequential
-from bix.utils.study import Study
+from bix.evaluation.study import Study
 
 
 class CrossValidation(Study):
