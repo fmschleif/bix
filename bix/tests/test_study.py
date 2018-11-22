@@ -2,8 +2,8 @@ from __future__ import division
 
 import numpy as np
 from bix.classifiers.rrslvq import RRSLVQ
-from bix.utils.crossvalidation import CrossValidation
-from bix.utils.gridsearch import GridSearch
+from bix.evaluation.crossvalidation import CrossValidation
+from bix.evaluation.gridsearch import GridSearch
 from bix.classifiers.rslvq import RSLVQ 
 from skmultiflow.bayes import NaiveBayes
 from skmultiflow.meta.adaptive_random_forests import AdaptiveRandomForest
@@ -26,5 +26,5 @@ def cross_validation_test():
     cv.save_summary()
 
 if __name__ == "__main__":  
-    parameter_grid_search_test()
+  #  parameter_grid_search_test()
     cross_validation_test()

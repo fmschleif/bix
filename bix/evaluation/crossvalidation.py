@@ -23,7 +23,7 @@ class CrossValidation(Study):
         if type(clfs) == 'list':
             raise ValueError("Must be classifer list")
 
-        self.non_multiflow_metrics = ["time","mean_std","window_std"]
+        self.non_multiflow_metrics = ["time","sliding_mean","mean_std","window_std"]
         self.clfs = clfs
         self.param_path = param_path
         self.test_size = test_size
@@ -36,7 +36,7 @@ class CrossValidation(Study):
 
     def test(self):
         start = time.time()
-        self.result.append(Parallel(n_jobs=-1)
+        self.result.append(Parallel(n_jobs=1)
                            (delayed(self.clf_job)(clf) for clf in self.clfs))
         end = time.time() - start
         print("\n--------------------------\n")
@@ -60,9 +60,11 @@ class CrossValidation(Study):
                     evaluator = EvaluatePrequential(
                         show_plot=False, max_samples=self.max_samples, restart_stream=True, batch_size=10, metrics=self.metrics,output_file=path_to_save)
                     evaluator.evaluate(stream=stream, model=clf)
-
+                    saved_metric = pd.read_csv(path_to_save,comment='#',header=0)
+                    stds = np.std(saved_metric.values[:,1:3],axis=0).tolist()
+                    sliding_mean = [np.mean(saved_metric.values[:,2],axis=0)]
                     output= np.array([[m for m in evaluator._data_buffer.data[n]["mean"]] for n in evaluator._data_buffer.data]+[
-                                        [evaluator.running_time_measurements[0]._total_time]]).T.flatten().tolist()+np.std(pd.read_csv(path_to_save,comment='#',header=0).values[:,1:3],axis=0).tolist()
+                                        [evaluator.running_time_measurements[0]._total_time]]).T.flatten().tolist()+sliding_mean+stds
                     print(path_to_save+" "+str(output))
                     local_result.append(output)
 
