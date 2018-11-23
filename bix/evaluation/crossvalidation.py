@@ -27,16 +27,17 @@ class CrossValidation(Study):
         self.clfs = clfs
         self.param_path = param_path
         self.test_size = test_size
-        self.result = [[] for e in self.metrics]
+        self.result = []
         self.max_samples = max_samples
         self.time_result = []
+        self.grid_result = []
 
     def reset(self):
         self.__init__(self, self.clfs)
 
     def test(self):
         start = time.time()
-        self.result.append(Parallel(n_jobs=1)
+        self.result.extend(Parallel(n_jobs=-1)
                            (delayed(self.clf_job)(clf) for clf in self.clfs))
         end = time.time() - start
         print("\n--------------------------\n")
@@ -72,10 +73,63 @@ class CrossValidation(Study):
 
             return [clf.__class__.__name__]+clf_result
 
-    def test_real_world(self):
-        self.streams = self.init_real_world()
-        self.result.append(self.clf_job(clf) for clf in self.clfs)
 
+    def create_grid(self,clfs,streams):
+        grid = []
+        for clf in clfs:
+            for stream in streams:
+                grid.append([clf,stream])
+        return grid
+
+    def test_grid(self):
+        start = time.time()
+        grid = self.create_grid(self.clfs,self.streams)
+        self.result.extend(Parallel(n_jobs=-1)
+                           (delayed(self.grid_job)(elem[0],elem[1]) for elem in grid))
+        # for elem in grid:
+        #     result.append(self.grid_job(elem[0],elem[1]))
+        self.result = self.process_results(self.clfs,self.result)
+        end = time.time() - start
+        print("\n--------------------------\n")
+        print("Duration of grid study validation "+str(end)+" seconds")
+    
+    def grid_job(self, clf,stream):
+            clf_result = []
+            time_result = []
+            params = self.search_best_parameters(clf)
+            self.chwd_root()
+            os.chdir(os.path.join(os.getcwd(),self.path))
+            print(clf.__class__.__name__)
+            try: clf.reset()
+            except NotImplementedError: clf.__init__()
+            clf = self.set_clf_params(clf, params, stream.name)
+            local_result = []
+            for i in range(self.test_size):
+                stream.prepare_for_use()
+                path_to_save = clf.__class__.__name__+"_performance_on_"+stream.name+"_"+self.date+".csv"
+                evaluator = EvaluatePrequential(
+                    show_plot=False, max_samples=self.max_samples, restart_stream=True, batch_size=10, metrics=self.metrics,output_file=path_to_save)
+                evaluator.evaluate(stream=stream, model=clf)
+                saved_metric = pd.read_csv(path_to_save,comment='#',header=0)
+                stds = np.std(saved_metric.values[:,1:3],axis=0).tolist()
+                sliding_mean = [np.mean(saved_metric.values[:,2],axis=0)]
+                output= np.array([[m for m in evaluator._data_buffer.data[n]["mean"]] for n in evaluator._data_buffer.data]+[
+                                    [evaluator.running_time_measurements[0]._total_time]]).T.flatten().tolist()+sliding_mean+stds
+                print(path_to_save+" "+str(output))
+                local_result.append(output)
+
+            clf_result= np.mean(local_result, axis=0).tolist()
+
+            return [clf.__class__.__name__]+clf_result
+
+    def process_results(self,clfs,result):
+        new_result = []
+        for clf in self.clfs:
+            name = clf.__class__.__name__
+            r = [k[1:] for k in result if name in k]
+            new_result.append([name]+r)
+        return new_result
+            
     def set_clf_params(self, clf, df, name):
         if isinstance(df, pd.DataFrame):
             row = df[df['Stream'] == name]
@@ -101,12 +155,12 @@ class CrossValidation(Study):
         os.chdir(os.path.join(os.getcwd(),self.path))
         for i, metric in enumerate(self.metrics+self.non_multiflow_metrics):
             values = np.array([elem[1:]
-                               for elem in self.result[-1]])[:, :, i].tolist()
-            names = [[elem[0]] for elem in self.result[-1]]
+                            for elem in self.result])[:, :, i].tolist()
+            names = [[elem[0]] for elem in self.result]
             df = pd.DataFrame([n+elem for n, elem in zip(names, values)],
                               columns=["Classifier"]+[s.name for s in self.streams])
             df = df.round(3)
-            df.to_csv(path_or_buf="_CV_Study"+"_"+metric+"_"+self.date +
+            df.to_csv(path_or_buf=str(np.random.randint(10))+"_CV_Study"+"_"+metric+"_"+self.date +
                       "_N_Classifier_"+str(len(self.clfs))+".csv", index=False)
 
     def determine_newest_file(self, files):
