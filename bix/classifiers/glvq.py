@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-# Author: Joris Jensen <jjensen@techfak.uni-bielefeld.de>
-#
+# Orig. Author: Joris Jensen <jjensen@techfak.uni-bielefeld.de> 
+# Adopted for data streams by Moritz Heusinger <moritz.heusinger@gmail.com>
 # License: BSD 3 clause
 
 from __future__ import division

@@ -10,7 +10,7 @@ from bix.utils.statistical_test_lib import friedman_test as Friedman, bonferroni
 import datetime
 
 def friedman_bon_dunn(algorithm_names, accuracys_per_algorithm, write_to_file=None):
-    """
+    """Combined Friedman and Bonferonni Dunn test
     This method performs a friedman pre-test, followed by a Bonferonni Dunn post-hoc
     test.
     
