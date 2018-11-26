@@ -10,11 +10,12 @@ from skmultiflow.data.mixed_generator import MIXEDGenerator
 from skmultiflow.data.sea_generator import SEAGenerator
 from skmultiflow.data.sine_generator import SineGenerator
 from skmultiflow.data.sea_generator import SEAGenerator
+from skmultiflow.data.agrawal_generator import AGRAWALGenerator
 # Incremental Concept Drift Generators
 from skmultiflow.data.hyper_plane_generator import HyperplaneGenerator
 # No Concept Drift Generators
 from skmultiflow.data.random_rbf_generator import RandomRBFGenerator
-
+from skmultiflow.data.hyper_plane_generator import HyperplaneGenerator
 
 class Study():
     # TODO: List of string with stream names for individual studies
@@ -36,6 +37,25 @@ class Study():
     
     def init_standard_streams(self):
         """Initializes standard data streams"""
+        agrawal_a = ConceptDriftStream(stream=AGRAWALGenerator(random_state=112, perturbation=0.1), 
+                            drift_stream=AGRAWALGenerator(random_state=112, 
+                                                          classification_function=2, perturbation=0.1),
+                            random_state=None,
+                            alpha=90.0,
+                            position=250000)
+                            
+        agrawal_g = ConceptDriftStream(stream=AGRAWALGenerator(random_state=112, perturbation=0.1), 
+                            drift_stream=AGRAWALGenerator(random_state=112, 
+                                                          classification_function=1, perturbation=0.1),
+                            random_state=None,
+                            position=250000,
+                            width=50000)
+                    
+        hyper = HyperplaneGenerator(mag_change=0.001, noise_percentage=0.1)
+                        
+                            
+        return [agrawal_a, agrawal_g, hyper]
+        
 
     def init_reoccuring_streams(self):
         """Initializes reoccuring streams: abrupt and gradual"""
@@ -66,7 +86,7 @@ class Study():
 
     def init_real_world(self):
         if not os.path.exists("datasets/"):
-            raise FileNotFoundError("Folder for data cannot be found! Should be Datasets/")
+            raise FileNotFoundError("Folder for data cannot be found! Should be datasets/")
          
         try:   
             #covertype = FileStream('datasets/covtype.csv') Label failure
@@ -78,7 +98,7 @@ class Study():
             moving_squares = FileStream('../datasets/moving_squares.csv')
             return [elec, weather, gmsc, moving_squares]
         except Exception as e: 
-            raise FileNotFoundError("Real-world datasets can't loaded! Check directory Datasets/")
+            raise FileNotFoundError("Real-world datasets can't loaded! Check directory datasets/")
             return []
         
     def chwd_root(self):

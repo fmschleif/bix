@@ -21,10 +21,10 @@ from bix.classifiers.rslvq import RSLVQ
 <p style="color:#FF0000";>Note, this is work in progress, names could be refactored soon.</p>
 
 ## To-Do
-[] Add multiflow as a dependency (depends on https://github.com/scikit-multiflow/scikit-multiflow/issues/83)
-[] Extend and enhance README
-[] Further develop this package
-[] Documentation!
-[] Unit tests + add a executable test suite to start all tests at once (and grouped by topic if it gets more complex)
-[] Define a minimal style guide --> like wrap everything in classes or at least methods, use underscores instead of camel case, 
+- [ ] Add multiflow as a dependency (depends on https://github.com/scikit-multiflow/scikit-multiflow/issues/83)
+- [ ] Extend and enhance README
+- [ ] Further develop this package
+- [ ] Documentation!
+- [ ] Unit tests + add a executable test suite to start all tests at once (and grouped by topic if it gets more complex)
+- [ ] Define a minimal style guide --> like wrap everything in classes or at least methods, use underscores instead of camel case, 
 provide a readme in form of comments at the start of each class and method, ... :-)
