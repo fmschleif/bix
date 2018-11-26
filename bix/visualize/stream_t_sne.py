@@ -21,7 +21,7 @@ import datetime
 #                       t-SNE                              #    
 #                                                          #
 ############################################################
-def plot_batch(X_batch, y_batch, detections, path):
+def _plot_batch(X_batch, y_batch, detections, path):
     plt.ioff() # interactive shell off
     i = len(detections) - 1
     
@@ -102,7 +102,7 @@ def t_sne_stream_visualization(stream):
         
         if(drift_detected or i >= iterations - 1):
             detections.append(i)
-            plot_batch(X_batch=complete_X, y_batch=complete_y, detections=detections, path=path)
+            _plot_batch(X_batch=complete_X, y_batch=complete_y, detections=detections, path=path)
             init = True
             
     print(50 * '-')
