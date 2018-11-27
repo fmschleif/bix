@@ -1,4 +1,4 @@
-# Business Intelligence Excellence @ FHWS 
+﻿# Business Intelligence Excellence @ FHWS 
 The packages contains classifiers, preprocessing and more utilities of streaming data.
 Created by the workgroup of computational intelligence @ fhws.
 
@@ -28,7 +28,7 @@ from bix.classifiers.rslvq import RSLVQ
 - [ ] Unit tests + add a executable test suite to start all tests at once 
 (and grouped by topic if it gets more complex)
 - [ ] Define a minimal style guide --> like wrap everything in classes or at least methods, 
-use underscores instead of camel case, 
-provide a readme in form of comments at the start of each class and method, ... :-) 
+use underscores instead of camel case
 - [ ] Real world streams
+- [ ] provide a readme in form of comments at the start of each class and method, ... :-)
 
