@@ -10,56 +10,20 @@ from sklearn.manifold import TSNE
 from skmultiflow.data.concept_drift_stream import ConceptDriftStream
 from skmultiflow.data.mixed_generator import MIXEDGenerator
 from skmultiflow.data.base_stream import Stream
-from starting_point import DriftTSNE
+from bix.utils.drift_tsne import DriftTSNE
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import datetime
 
-############################################################
-#                                                          #
-#                       t-SNE                              #    
-#                                                          #
-############################################################
-def _plot_batch(X_batch, y_batch, detections, path):
-    plt.ioff() # interactive shell off
-    i = len(detections) - 1
-    
-    print(50 * '-')
-    print('Start t-SNE Iteration ', i+1)
-                  
-    # Optimize perplexity between 5 and 50
-    perplex=5
-    min_kl = 1
-    
-    while perplex <= 50:
-        t_sne = TSNE(perplexity=perplex, n_iter=1000)
-        X_embedding = t_sne.fit_transform(X=X_batch, y=y_batch)
-        
-        if (t_sne.kl_divergence_ < min_kl):
-            opt_perplex = perplex
-            min_kl = t_sne.kl_divergence_
-            
-        progress = int(perplex / 50 * 100)
-        print('Progress: {} %'.format(progress))
-        perplex += 5
-
-        
-    t_sne = TSNE(perplexity=opt_perplex, n_iter=1000)
-    X_embedding = t_sne.fit_transform(X=X_batch, y=y_batch)
-    
-    plt.title('Batch: {} Position: {} Size: {}'.format(i+1, detections[i] + 1, X_batch.shape[0]))
-    plt.ylim([np.min(X_embedding.T[1]) - 10, np.max(X_embedding.T[1]) + 10])
-    plt.xlim([np.min(X_embedding.T[0]) - 10, np.max(X_embedding.T[0]) + 10])
-    fig = plt.scatter(x=X_embedding.T[0], y=X_embedding.T[1], c=y_batch)
-    plt.savefig(fname='{}/batch{}.png'.format(path,i+1), dpi=350)
-    fig.remove()
-    plt.clf()
-   
-    print(50 * '-')
-    print('Finished t-SNE Iteration ', i+1)
-
 def t_sne_stream_visualization(stream):
+    """t-distributed stochastical neighbour embedding
+    Visualizes a stream splitted in steps divided by a concept drift detector.
+    Thus, each figure should show a new data distribution.
+    Parameters
+    ----------
+        stream : Instance of skmultiflow.data.base_stream
+    """
     path = 'figure/' + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if not os.path.exists('figure'):
         os.mkdir('figure')
@@ -107,6 +71,44 @@ def t_sne_stream_visualization(stream):
             
     print(50 * '-')
     print('Finished Drift Detection')
+    
+def _plot_batch(X_batch, y_batch, detections, path):
+    plt.ioff() # interactive shell off
+    i = len(detections) - 1
+    
+    print(50 * '-')
+    print('Start t-SNE Iteration ', i+1)
+                  
+    # Optimize perplexity between 5 and 50
+    perplex=5
+    min_kl = 1
+    
+    while perplex <= 50:
+        t_sne = TSNE(perplexity=perplex, n_iter=1000)
+        X_embedding = t_sne.fit_transform(X=X_batch, y=y_batch)
+        
+        if (t_sne.kl_divergence_ < min_kl):
+            opt_perplex = perplex
+            min_kl = t_sne.kl_divergence_
+            
+        progress = int(perplex / 50 * 100)
+        print('Progress: {} %'.format(progress))
+        perplex += 5
+
+        
+    t_sne = TSNE(perplexity=opt_perplex, n_iter=1000)
+    X_embedding = t_sne.fit_transform(X=X_batch, y=y_batch)
+    
+    plt.title('Batch: {} Position: {} Size: {}'.format(i+1, detections[i] + 1, X_batch.shape[0]))
+    plt.ylim([np.min(X_embedding.T[1]) - 10, np.max(X_embedding.T[1]) + 10])
+    plt.xlim([np.min(X_embedding.T[0]) - 10, np.max(X_embedding.T[0]) + 10])
+    fig = plt.scatter(x=X_embedding.T[0], y=X_embedding.T[1], c=y_batch)
+    plt.savefig(fname='{}/batch{}.png'.format(path,i+1), dpi=350)
+    fig.remove()
+    plt.clf()
+   
+    print(50 * '-')
+    print('Finished t-SNE Iteration ', i+1)
 
 if __name__ == '__main__':
     t_sne_stream_visualization(ConceptDriftStream(MIXEDGenerator(classification_function=0), 

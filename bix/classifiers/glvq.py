@@ -61,9 +61,6 @@ class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         Prototype classes
     classes_ : array-like, shape = [n_classes]
         Array containing labels.
-    See also
-    --------
-    GrlvqModel, GmlvqModel, LgmlvqModel
     """
 
     def __init__(self, prototypes_per_class=1, initial_prototypes=None,
