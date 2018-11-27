@@ -8,8 +8,9 @@ from bix.classifiers.rslvq import RSLVQ
 from skmultiflow.bayes import NaiveBayes
 from skmultiflow.meta.adaptive_random_forests import AdaptiveRandomForest
 from skmultiflow.trees.hoeffding_adaptive_tree import HAT
-
-
+from skmultiflow.lazy.knn import KNN
+from skmultiflow.meta.oza_bagging_adwin import OzaBaggingAdwin
+from skmultiflow.lazy.sam_knn import SAMKNN
 
 def parameter_grid_search_test():
     grid = {"sigma": np.arange(2,3,2), "prototypes_per_class": np.arange(2,3,2)}
@@ -26,8 +27,8 @@ def cross_validation_test():
     cv.save_summary()
 
 def test_grid():
-    clfs = [RRSLVQ(),NaiveBayes()]
-    cv = CrossValidation(clfs=clfs,max_samples=500,test_size=1)
+    clfs = [RRSLVQ(),RSLVQ(),HAT(),OzaBaggingAdwin(base_estimator=KNN()),AdaptiveRandomForest(),SAMKNN()]
+    cv = CrossValidation(clfs=clfs,max_samples=1000000,test_size=1)
     cv.test_grid()
     cv.save_summary()
     print("here")
