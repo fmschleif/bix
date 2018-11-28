@@ -1,7 +1,8 @@
 import os
 from datetime import date, timedelta
-from TwitterRetriever import TwitterRetriever
 import unittest
+
+from bix.data.twitter.twitter_retriever import TwitterRetriever
 
 
 class TestTwitterQueryResults(unittest.TestCase):
@@ -11,22 +12,30 @@ class TestTwitterQueryResults(unittest.TestCase):
     The ResourceWarning returned by the unittests is because of the Resource-Model of the Twitter API i use
     """
 
-    def test_retrival_as_csv(self):
+    def test_retrieval_as_csv(self):
         tr = TwitterRetriever()
         result = tr.search_text(['Würzburg', 'Berlin'], start_date=date.today() - timedelta(days=7),
                                 end_date=date.today(), count=10, lang='de')
         result.to_csv('test.csv')
         os.remove('test.csv')
 
-    def test_retrival_as_map(self):
+    def test_retrieval_as_list(self):
         tr = TwitterRetriever()
         result = tr.search_text(['Würzburg', 'Berlin'], start_date=date.today() - timedelta(days=7),
                                 end_date=date.today(), count=10, lang='de')
-        result_map = result.to_map()
-        self.assertTrue('Würzburg' in result_map)
-        self.assertTrue('Berlin' in result_map)
-        self.assertEqual(len(result_map['Würzburg']), 10)
-        self.assertEqual(len(result_map['Berlin']), 10)
+        result_map = result.to_list()
+        for i in range(0, 10):
+            self.assertTrue('Würzburg', result_map[i][0])
+        for i in range(10, 20):
+            self.assertTrue('Berlin', result_map[i][0])
+
+    def test_hashtag_search(self):
+        tr = TwitterRetriever()
+        result = tr.search_hashtags(['Würzburg', '#Berlin'], start_date=date.today() - timedelta(days=7),
+                                end_date=date.today(), count=10, lang='de')
+        result_list = result.to_list()
+        for r in result_list:
+            self.assertTrue(r[0].startswith('#'))
 
     def test_date_in_past(self):
         tr = TwitterRetriever()
