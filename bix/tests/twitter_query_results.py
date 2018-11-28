@@ -1,6 +1,6 @@
 import os
 from datetime import date, timedelta
-from TwitterRetriever import TwitterRetriever
+from bix.data.twittter.TwitterRetriever import TwitterRetriever
 import unittest
 
 
