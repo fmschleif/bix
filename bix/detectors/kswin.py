@@ -13,6 +13,8 @@ class KSWIN(BaseDriftDetector):
         self.change_detected = False;
         self.p_value = 0
         self.n = 0
+        if self.alpha < 0 or self.alpha > 1:
+            raise ValueError("Alpha must in between 0 and 1")
         if type(data) != list or type(data) == None:
             self.window = []
         else:

@@ -6,9 +6,10 @@ from skmultiflow.data import AGRAWALGenerator
 class ReoccuringDriftStream(Stream):
     """ ReoccuringDriftStream
 
-    A stream generator that adds concept drift or change by joining several streams.
-    This is done by building a weighted combination of two pure distributions that
-    characterizes the target concepts before and after the change.
+    A stream generator creating frequent reoccurring concept drift by joining of two streams.  
+    Drift is created by a weighted based voting of switching between streams.
+    For given parameter width the weighted voting tends towards the new concept drift stream
+    and eareses the current concept. The switch between concept happens after a given pause.
 
     The sigmoid function is an elegant and practical solution to define the probability that ech
     new instance of the stream belongs to the new concept after the drift. The sigmoid function
@@ -17,17 +18,21 @@ class ReoccuringDriftStream(Stream):
     - :math:`p`, the position where the change occurs
     - :math:`w`, the width of the transition
 
-    The sigmoid function at sample `t` is
+    The sigmoid function at sample `t` is for the second stream is:
 
     :math:`f(t) = 1/(1+e^{-4*(t-p)/w})`
+    
+    The weighting function for first stream is:
+    - :math: `g(t) = 1 - f(t)´
 
     Parameters
     ----------
     stream: Stream (default= AGRAWALGenerator(random_state=112))
-        First stream
+        First stream, second drift
 
     drift_stream: Stream (default= AGRAWALGenerator(random_state=112, classification_function=2))
-        Second stream which adds drift
+        Second stream, first drift
+
 
     random_state: int, RandomState instance or None, optional (default=None)
         If int, random_state is the seed used by the random number generator;
@@ -40,10 +45,13 @@ class ReoccuringDriftStream(Stream):
         Valid values are in the range (0.0, 90.0].
 
     position: int (default: 0)
-        Central position of concept drift change.
+        Central position of _first_ concept drift change.
 
     width: int (Default: 1000)
         Width of concept drift change.
+
+    pause: int (Default: 1000)
+        Defines pause between two concept drift, after first concept drift has happend.
 
     Notes
     -----
@@ -52,6 +60,37 @@ class ReoccuringDriftStream(Stream):
     is round-down to the nearest smaller integer. Notice that larger values of :math:`\\alpha` result in smaller
     widths. For :math:`\\alpha>45.0`, the width is smaller than 1 so values are round-up to 1 to avoid
     division by zero errors.
+
+    References
+    --------
+    Class based on ConceptDriftStream class of scikit-multiflow package:
+    https://scikit-multiflow.github.io/scikit-multiflow/skmultiflow.data.html#skmultiflow.data.ConceptDriftStream
+
+    Examples
+    --------
+    #Imports
+    from skmultiflow.data.mixed_generator import MIXEDGenerator
+    from skmultiflow.evaluation.evaluate_prequential import EvaluatePrequential
+    from bix.data.reoccuringdriftstream import ReoccuringDriftStream
+    from skmultiflow.meta.oza_bagging_adwin import OzaBaggingAdwin
+    from skmultiflow.lazy.knn import KNN
+    #Create two streams
+    s1 = MIXEDGenerator(classification_function = 1, random_state= 112, balance_classes = False)
+    s2 = MIXEDGenerator(classification_function = 0, random_state= 112, balance_classes = False)
+    # Create reoccuring drift object
+    stream = ReoccuringDriftStream(stream=s1,
+                            drift_stream=s2,
+                            random_state=None,
+                            alpha=90.0, # angle of change grade 0 - 90
+                            position=2000,
+                            width=500)
+    stream.prepare_for_use()
+
+    oza = OzaBaggingAdwin(base_estimator=KNN())
+
+    # Evaluation
+    evaluator = EvaluatePrequential(max_samples=10000, metrics=['accuracy', 'kappa_t', 'kappa_m', 'kappa'])
+    evaluator.evaluate(stream=stream, model=oza)
 
     """
 
@@ -87,6 +126,12 @@ class ReoccuringDriftStream(Stream):
                 raise ValueError('Invalid alpha value: {}'.format(alpha))
         else:
             self.width = width
+        
+        if self.width < 0:
+            raise ValueError("Width must be greater than 0")
+        if self.pause < 0:
+            raise ValueError("Pause must be greater than 0")
+
         self.position = position
         self._input_stream = stream
         self._drift_stream = drift_stream

@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Oct 16 10:27:33 2018
-
-@author: Moritz Heusinger <moritz.heusinger@gmail.com>
-"""
 
 import unittest
 from sklearn.datasets import load_wine

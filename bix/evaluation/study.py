@@ -1,7 +1,7 @@
 import os
 import datetime
 
-from bix.utils.ReoccuringDriftStream import ReoccuringDriftStream 
+from bix.data.reoccuringdriftstream import ReoccuringDriftStream 
 from skmultiflow.data.concept_drift_stream import ConceptDriftStream
 from skmultiflow.data.file_stream import FileStream
 #Abrupt Concept Drift Generators
@@ -19,7 +19,25 @@ from skmultiflow.data.random_rbf_generator_drift import RandomRBFGeneratorDrift
 from skmultiflow.data.random_rbf_generator import RandomRBFGenerator
 
 class Study():
-    """Study"""
+    """ Study
+
+    Abstract class for evaluation methods. Initializes streams for studies and is baseline class for metrics, paths and dates.   
+
+    Parameters
+    ----------
+    streams: list(Stream)
+        List of streams which will be evaluated. If no streams given, standard streams are initialized.
+
+    path: String (Default: /)
+        Path to directory for save of study results. Default in current directory.
+        Folder will be created if not existent. 
+        
+    Notes
+    -----
+    This is a abstrace base class. No studies should be processed. 
+   
+    """
+   
     # TODO: List of string with stream names for individual studies
     def __init__(self, streams=None, path="/"):
         if streams == None:
