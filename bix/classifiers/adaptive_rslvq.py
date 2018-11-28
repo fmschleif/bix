@@ -16,7 +16,9 @@ from sklearn.utils import validation
 from sklearn.utils.validation import check_is_fitted
 
 class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
-    """Robust Soft Learning Vector Quantization
+    """Robust Soft Learning Vector Quantization for Streaming and Non-Streaming Data
+    By choosing another gradient descent method the RSLVQ can be used as an adaptive version.
+    By setting the batch_size higher than 1, the algorithm works in batch mode.
     Parameters
     ----------
     prototypes_per_class : int or list of int, optional (default=1)
@@ -36,6 +38,10 @@ class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
     gradient_descent : string, Gradient Descent describes the used technique
         to perform the gradient descent. Possible values: 'SGD' (default), 
         'Adadelta'.
+    decay_rate : float, has to be less than 1 and greater than 0. Represents the
+        factor which decays old stored gradients in Adadelta. (Default: 0.9) 
+    batch_size : int, (default: 1) if set greater than 1 the RSLVQ will work in batch
+        mode and performs the prototype update after each batch instead after each data point.
     Attributes
     ----------
     w_ : array-like, shape = [n_prototypes, n_features]
@@ -51,10 +57,9 @@ class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
 
     def __init__(self, prototypes_per_class=1, initial_prototypes=None,
                  sigma=1.0, gradient_descent='SGD', random_state=None,
-                 decay_rate=0.9, learning_rate=0.001, batch_size=1):
+                 decay_rate=0.9, batch_size=1):
         self.sigma = sigma
         self.random_state = random_state
-        self.learning_rate = learning_rate
         self.epsilon = 1e-8
         self.initial_prototypes = initial_prototypes
         self.prototypes_per_class = prototypes_per_class
