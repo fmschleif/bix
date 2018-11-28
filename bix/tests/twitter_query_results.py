@@ -1,9 +1,5 @@
 import os
 from datetime import date, timedelta
-<<<<<<< HEAD:bix/tests/twitter_query_results.py
-from bix.data.twittter.TwitterRetriever import TwitterRetriever
-=======
->>>>>>> e754b1dd1510b7e8945fd433a3c5f1226bfc9848:bix/tests/test_twitter_query_results.py
 import unittest
 
 from bix.data.twitter.twitter_retriever import TwitterRetriever
