@@ -81,6 +81,8 @@ class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
             raise ValueError('Batch size must be greater than 0')
         if(prototypes_per_class <= 0):
             raise ValueError('Prototypes per class must be more than 0')
+        if(decay_rate >= 1.0 or decay_rate <= 0):
+            raise ValueError('Decay rate must be greater than 0 and less than 1')
             
     def get_prototypes(self):
         """Returns the prototypes"""

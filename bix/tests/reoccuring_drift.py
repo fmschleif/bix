@@ -7,8 +7,8 @@ import unittest
 import numpy as np
 
 class TESTGRIDSEARCH(unittest.TestCase):
-    """TESTCROSSVALIDATION
-    """ 
+    """TESTCROSSVALIDATION"""
+    
     def test_width(self):
         with self.assertRaises(ValueError):
             ReoccuringDriftStream(width=-1)

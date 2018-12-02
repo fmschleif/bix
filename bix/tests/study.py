@@ -9,8 +9,6 @@ from skmultiflow.bayes import NaiveBayes
 from skmultiflow.meta.adaptive_random_forests import AdaptiveRandomForest
 from skmultiflow.trees.hoeffding_adaptive_tree import HAT
 
-
-
 def parameter_grid_search_test():
     grid = {"sigma": np.arange(2,3,2), "prototypes_per_class": np.arange(2,3,2)}
     clf = RRSLVQ()

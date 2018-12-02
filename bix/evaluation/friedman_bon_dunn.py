@@ -53,7 +53,7 @@ def friedman_bon_dunn(algorithm_names, accuracys_per_algorithm, write_to_file=No
     Nothing, only writes to file
     
     """    
-    f_value, p_value, rankings, pivots,chi2 = Friedman(*accuracys_per_algorithm)
+    f_value, p_value, rankings, pivots, chi2 = Friedman(*accuracys_per_algorithm)
     
     pivot_dict = dict(zip(algorithm_names, pivots))
     

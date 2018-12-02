@@ -7,7 +7,6 @@ from typing import List
 
 import twitter
 
-
 from datetime import *
 
 from bix.data.twitter.twitter_query_result import TwitterQueryResult
