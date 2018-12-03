@@ -10,8 +10,7 @@ Welcome to bix's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-.. automodule:: bix.classifiers.glvq
-    :members:
+   bix/bix
 
 
 Indices and tables
