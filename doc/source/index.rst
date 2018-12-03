@@ -10,7 +10,6 @@ Welcome to bix's documentation!
    :maxdepth: 4
    :caption: Contents:
 
-   bix/bix
 
 Indices and tables
 ==================
