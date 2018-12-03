@@ -138,6 +138,9 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# Linux
+*nohup.out
+
 
 # pycharm project settings
 .idea/
