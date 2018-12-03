@@ -7,11 +7,10 @@ Welcome to bix's documentation!
 ===============================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Contents:
 
    bix/bix
-
 
 Indices and tables
 ==================

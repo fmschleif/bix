@@ -307,7 +307,7 @@ class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
 
     def fit(self, X, y, classes=None):
         """Fit the LVQ model to the given training data and parameters using
-        l-bfgs-b.
+        SGD.
         Parameters
         ----------
         x : array-like, shape = [n_samples, n_features]

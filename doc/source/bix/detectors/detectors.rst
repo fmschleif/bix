@@ -1,12 +1,10 @@
-bix.classifiers
+bix.detectors
 ***************
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   adaptive_rslvq
-   glvq
-   rrslvq
-   rslvq
+   anwin
+   kswin
 
 

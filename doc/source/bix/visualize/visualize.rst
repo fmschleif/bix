@@ -1,12 +1,9 @@
-bix.classifiers
+bix.visualize
 ***************
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   adaptive_rslvq
-   glvq
-   rrslvq
-   rslvq
+   stream_t_sne
 
 

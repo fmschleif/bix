@@ -1,12 +1,11 @@
-bix.classifiers
+bix.evaluation
 ***************
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   adaptive_rslvq
-   glvq
-   rrslvq
-   rslvq
+   crossvalidation
+   gridsearch
+   study
 
 
