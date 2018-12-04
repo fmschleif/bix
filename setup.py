@@ -21,4 +21,9 @@ setuptools.setup(name='bix',
           'scikit-learn',
           'python-twitter'
       ],
+      extras_require={
+        'dev': [
+            'sphinx',
+        ]
+      },
       zip_safe=False)

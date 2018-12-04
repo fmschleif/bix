@@ -9,7 +9,7 @@ Clone the repository. Execute ``pip install .`` in the project folder.
 Pull the main branch of the reposiory and execute ``pip install .`` again in the project folder.
 
 ## Contribution 
-In case of development of new features use ``pip install -e .`` 
+In case of development of new features use ``pip install -e .[dev]`` 
 
 ## Usage
 More coming soon ... stay tuned
