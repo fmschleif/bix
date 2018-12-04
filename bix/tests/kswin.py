@@ -16,7 +16,7 @@ class TESTKSWIN(unittest.TestCase):
 
     def test_data(self):
         kswin = KSWIN(data="st")
-        self.assertIsInstance()(kswin.window,list)
+        self.assertIsInstance(kswin.window, list)
     def test_kswin(self):
         kswin = KSWIN(alpha=0.001)
         stream = SEAGenerator(classification_function = 2, random_state = 112, balance_classes = False,noise_percentage = 0.28)

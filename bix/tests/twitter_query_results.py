@@ -9,7 +9,7 @@ class TestTwitterQueryResults(unittest.TestCase):
     """
     All test assume that the environment variables are set up accordingly or they will fail
 
-    The ResourceWarning returned by the unittests is because of the Resource-Model of the Twitter API i use
+    The ResourceWarning returned by the unittests is because of the Resource-Model of the Twitter API I use
     """
 
     def test_retrieval_as_csv(self):

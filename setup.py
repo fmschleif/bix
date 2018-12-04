@@ -18,6 +18,12 @@ setuptools.setup(name='bix',
       packages=setuptools.find_packages(),
       install_requires=[
           'joblib',
-          'scikit-learn'
+          'scikit-learn',
+          'python-twitter'
       ],
+      extras_require={
+        'dev': [
+            'sphinx',
+        ]
+      },
       zip_safe=False)

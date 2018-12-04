@@ -138,7 +138,13 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# Linux
+*nohup.out
+
 
 # pycharm project settings
 .idea/
+<<<<<<< HEAD
 bix/data/twitter/config.py
+=======
+>>>>>>> aa1bca7c63fecadef88648aad969d10e3d023613

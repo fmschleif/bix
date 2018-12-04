@@ -27,7 +27,8 @@ def _squared_euclidean(a, b=None):
 
 
 class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
-    """Generalized Learning Vector Quantization
+    """
+    Generalized Learning Vector Quantization
     Parameters
     ----------
     prototypes_per_class : int or list of int, optional (default=1)
