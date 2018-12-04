@@ -8,7 +8,7 @@ from random import random as rnd
 import numpy as np
 import pandas as pd
 
-from kswin import KSWIN
+from bix.detectors.kswin import KSWIN
 from skmultiflow.drift_detection.adwin import ADWIN
 
 class DriftTSNE():

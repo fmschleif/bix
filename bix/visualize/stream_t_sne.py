@@ -24,7 +24,7 @@ def t_sne_stream_visualization(stream):
     ----------
         stream : Instance of skmultiflow.data.base_stream
     """
-    path = 'figure/' + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    path = 'figure/' + datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
     if not os.path.exists('figure'):
         os.mkdir('figure')
     os.mkdir(path)
