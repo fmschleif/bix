@@ -141,3 +141,4 @@ venv.bak/
 
 # pycharm project settings
 .idea/
+bix/data/twitter/config.py
