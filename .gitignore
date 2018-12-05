@@ -37,6 +37,7 @@ tmp/**
 
 search/
 study/
+figure/
 
 # C extensions
 *.so
