@@ -68,29 +68,29 @@ class ReoccuringDriftStream(Stream):
 
     Examples
     --------
-    >>>#Imports
-    >>>from skmultiflow.data.mixed_generator import MIXEDGenerator
-    >>>from skmultiflow.evaluation.evaluate_prequential import EvaluatePrequential
-    >>>from bix.data.reoccuringdriftstream import ReoccuringDriftStream
-    >>>from skmultiflow.meta.oza_bagging_adwin import OzaBaggingAdwin
-    >>>from skmultiflow.lazy.knn import KNN
-    >>>#Create two streams
-    >>>s1 = MIXEDGenerator(classification_function = 1, random_state= 112, balance_classes = False)
-    >>>s2 = MIXEDGenerator(classification_function = 0, random_state= 112, balance_classes = False)
-    >>># Create reoccuring drift object
-    >>>stream = ReoccuringDriftStream(stream=s1,
-    >>>                        drift_stream=s2,
-    >>>                        random_state=None,
-    >>>                        alpha=90.0, # angle of change grade 0 - 90
-    >>>                        position=2000,
-    >>>                        width=500)
-    >>>stream.prepare_for_use()
-    >>>
-    >>>oza = OzaBaggingAdwin(base_estimator=KNN())
-    >>>
-    >>># Evaluation
-    >>>evaluator = EvaluatePrequential(max_samples=10000, metrics=['accuracy', 'kappa_t', 'kappa_m', 'kappa'])
-    >>>evaluator.evaluate(stream=stream, model=oza)
+    >>> #Imports
+    >>> from skmultiflow.data.mixed_generator import MIXEDGenerator
+    >>> from skmultiflow.evaluation.evaluate_prequential import EvaluatePrequential
+    >>> from bix.data.reoccuringdriftstream import ReoccuringDriftStream
+    >>> from skmultiflow.meta.oza_bagging_adwin import OzaBaggingAdwin
+    >>> from skmultiflow.lazy.knn import KNN
+    >>> #Create two streams
+    >>> s1 = MIXEDGenerator(classification_function = 1, random_state= 112, balance_classes = False)
+    >>> s2 = MIXEDGenerator(classification_function = 0, random_state= 112, balance_classes = False)
+    >>> # Create reoccuring drift object
+    >>> stream = ReoccuringDriftStream(stream=s1,
+    >>>                         drift_stream=s2,
+    >>>                         random_state=None,
+    >>>                         alpha=90.0, # angle of change grade 0 - 90
+    >>>                         position=2000,
+    >>>                         width=500)
+    >>> stream.prepare_for_use()
+    >>> 
+    >>> oza = OzaBaggingAdwin(base_estimator=KNN())
+    >>> 
+    >>> # Evaluation
+    >>> evaluator = EvaluatePrequential(max_samples=10000, metrics=['accuracy', 'kappa_t', 'kappa_m', 'kappa'])
+    >>> evaluator.evaluate(stream=stream, model=oza)
 
     """
 
