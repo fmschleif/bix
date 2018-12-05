@@ -19,11 +19,12 @@ setuptools.setup(name='bix',
       install_requires=[
           'joblib',
           'scikit-learn',
-          'python-twitter'
+          'python-twitter',
       ],
       extras_require={
         'dev': [
             'sphinx',
+            'sphinx_rtd_theme'
         ]
       },
       zip_safe=False)

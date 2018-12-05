@@ -37,7 +37,7 @@ class TESTANWIN(unittest.TestCase):
                 detections.append(i)
 
         print("----- Number of detections: "+str(len(detections))+ " -----")
-        self.assertGreaterEqual(len(detections),10)
+        self.assertGreaterEqual(len(detections),5)
 
 if __name__ == "__main__":
     unittest.main()
