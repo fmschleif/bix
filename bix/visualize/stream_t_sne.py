@@ -23,21 +23,24 @@ class T_sne_stream_visualizer():
     Parameters
     ----------
     stream : Instance of skmultiflow.data.base_stream
-             Stream which will be visualized
+            Stream which will be visualized
     path :   string
-             Relative or absolute path which represent the path where figures are
-             saved to
-    drift_handling : String, ('KS' or 'ADWIN')
-             Indicates which drift detector will be used for splitting the batches
+            Relative or absolute path which represent the path where figures are
+            saved to
+    drift_handling : string, ('KS' or 'ADWIN')
+            Indicates which drift detector will be used for splitting the batches
+    confidence : float
+            Confidence used by the drift handling algorithm
     """
     # TODO: implement Z-trans to normalize each batch
-    def __init__(self, stream, path=None, drift_handling='KS'):
+    def __init__(self, stream, path=None, drift_handling='KS', confidence=0.001):
         if not isinstance(stream, Stream):
             raise TypeError('Wrong type, expected Stream, but was ', type(stream))
         else:
             self.stream = stream
         
         self.path = path
+        self.confidence = confidence
         
         if (drift_handling == 'KS' or drift_handling=='ADWIN'):
             self.drift_handling = drift_handling
@@ -80,7 +83,7 @@ class T_sne_stream_visualizer():
         detections = []
         init = True
         
-        drift_tsne = DriftTSNE(drift_handling=self.drift_handling, confidence=0.001)
+        drift_tsne = DriftTSNE(drift_handling=self.drift_handling, confidence=self.confidence)
         
         iterations = 3000
         
@@ -148,6 +151,7 @@ if __name__ == '__main__':
                             width=1,
                             position=1500),
                 path=None,
-                drift_handling='KS')
+                drift_handling='KS',
+                confidence=0.001)
     visualizer.visualize()
         
