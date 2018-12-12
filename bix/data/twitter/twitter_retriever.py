@@ -3,13 +3,15 @@
 """
 
 import os
-from typing import List
+from pathlib import Path
+from typing import List, Tuple
 
+import pandas
 import twitter
+import numpy as np
 
 from datetime import *
 
-from bix.data.twitter.twitter_query_result import TwitterQueryResult
 from bix.data.twitter.config import TWITTER_CONFIG
 
 
@@ -58,7 +60,8 @@ class TwitterRetriever:
         tr.api = tr.init_api()
 
     def search_text(self, query_strings: List[str], start_date: date = date.today() - timedelta(days=7),
-                    end_date: date = date.today(), count: int = 15, lang: str = 'de') -> TwitterQueryResult:
+                    end_date: date = date.today(), count: int = 15, lang: str = 'de', output_file=None,
+                    max_ids: List[int] = None) -> Tuple[List[List[str]], List[int]]:
         """
         Search for a number of strings on Twitter.
 
@@ -72,16 +75,31 @@ class TwitterRetriever:
         self.validate_date(start_date)
         self.validate_date(end_date)
 
-        ret = TwitterQueryResult()
-        for s in query_strings:
-            res = self.api.GetSearch(term=s, until=end_date, since=start_date, count=count, lang=lang,
-                                     include_entities=True)
-            ret.results.extend([[s] + t.text.split() for t in res])
+        results = []
+        new_max_ids = []
+        for i, s in enumerate(query_strings):
 
-        return ret
+            tweet_amount = count
+            last_max_id = max_ids[i] + 1 if max_ids is not None else None
+            while tweet_amount > 0:
+                res = self.api.GetSearch(term=s, until=end_date, since=start_date, count=tweet_amount, lang=lang,
+                                         include_entities=True, max_id=last_max_id)
+                if len(res) == 0:
+                    break  # out of results
+                results.extend([[s] + t.text.split() for t in res])
+                tweet_amount = tweet_amount - len(res)
+                last_max_id = res[-1].id - 1
+            new_max_ids.append(last_max_id)
+
+        if output_file is not None:
+            df = pandas.DataFrame(results)
+            df.to_csv(output_file, encoding='utf-8', mode='a', header=False, index=False)
+
+        return results, new_max_ids
 
     def search_hashtags(self, hashtags: List[str], start_date: date = None, end_date: date = None,
-                        count: int = 15, lang: str = 'de') -> TwitterQueryResult:
+                        count: int = 15, lang: str = 'de', output_file=None,
+                        max_ids: List[int] = None) -> Tuple[List[List[str]], List[int]]:
         """
         Search for a number of hashtags on Twitter.
 
@@ -95,7 +113,8 @@ class TwitterRetriever:
         :exception raises a Exception if the start or end date is more than 7 days in the past or in the future
         """
         return self.search_text(query_strings=[h if h.startswith('#') else '#' + h for h in hashtags],
-                                start_date=start_date, end_date=end_date, count=count, lang=lang)
+                                start_date=start_date, end_date=end_date, count=count, lang=lang,
+                                output_file=output_file, max_ids=max_ids)
 
     def get_access_token(self) -> str:
         """
@@ -159,4 +178,3 @@ class TwitterRetriever:
             return
         if var < date.today() - timedelta(days=7):
             raise Exception('date "%s" lies to far in the past (7 days)')
-

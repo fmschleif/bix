@@ -20,8 +20,3 @@ TWITTER_CONFIG = {
    'TWITTER_CONSUMER_SECRET': 'vPCL7Wg6MVHfSOJezQuO4j1d9YqE2DxGbj0LhkG9Ulk0SS8BHr'
 
 }
-
-"""
-Set this to whereever the created CSV files should be placed (default is the same folder as this config file)
-"""
-CSV_DEFAULT_OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
