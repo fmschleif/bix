@@ -12,6 +12,8 @@ import numpy as np
 
 from datetime import *
 
+from twitter import Status
+
 from bix.data.twitter.config import TWITTER_CONFIG
 
 
@@ -83,12 +85,14 @@ class TwitterRetriever:
             last_max_id = max_ids[i] + 1 if max_ids is not None else None
             while tweet_amount > 0:
                 res = self.api.GetSearch(term=s, until=end_date, since=start_date, count=tweet_amount, lang=lang,
-                                         include_entities=True, max_id=last_max_id)
-                if len(res) == 0:
+                                         include_entities=True, max_id=last_max_id, return_json=True)
+                statuses = [Status.NewFromJsonDict(x) for x in res.get('statuses', '')]
+                if len(statuses) == 0:
                     break  # out of results
-                results.extend([[s] + t.text.split() for t in res])
-                tweet_amount = tweet_amount - len(res)
-                last_max_id = res[-1].id - 1
+                results.extend([[s] + t.text.split() for t in statuses])
+                tweet_amount = tweet_amount - len(statuses)
+                next_results_link: str = res['search_metadata']['next_results']
+                last_max_id = int(next_results_link.split('&')[0].split('=')[1])
             new_max_ids.append(last_max_id)
 
         if output_file is not None:
