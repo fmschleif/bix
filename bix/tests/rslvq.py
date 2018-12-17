@@ -45,7 +45,7 @@ class TestRSLVQ(unittest.TestCase):
         evaluator = EvaluatePrequential(show_plot=False, max_samples=20000,
                                         batch_size=5)
 
-        evaluator.evaluate(stream, clf, model_names=['RSLVQ'])
+        evaluator.evaluate(stream, clf, model_names=['Batch RSLVQ'])
 
         measurements = np.asarray(evaluator.get_measurements()[0])[0]
 

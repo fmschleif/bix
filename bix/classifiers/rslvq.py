@@ -272,7 +272,7 @@ class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
             pos = 0
             for actClass in range(len(self.classes_)):
                 nb_prot = nb_ppc[actClass] # nb_ppc: prototypes per class
-                if(self.protos_initialized[actClass] == 0 and self.classes_[actClass] in unique_labels(train_lab)):
+                if(self.protos_initialized[actClass] == 0 and actClass in unique_labels(train_lab)):
                     mean = np.mean(
                         train_set[train_lab == self.classes_[actClass], :], 0)
                     self.w_[pos:pos + nb_prot] = mean + (
@@ -284,7 +284,10 @@ class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
                         self.protos_initialized[actClass] = 1
     
                     self.c_w_[pos:pos + nb_prot] = self.classes_[actClass]
-                pos += nb_prot
+                    pos += nb_prot
+                elif(self.protos_initialized[actClass] == 0):
+                    self.w_[pos:pos + nb_prot] = 0
+                    pos += nb_prot
         else:
             x = validation.check_array(self.initial_prototypes)
             self.w_ = x[:, :-1]

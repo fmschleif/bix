@@ -10,7 +10,6 @@ import unittest
 from bix.visualize.stream_t_sne import T_sne_stream_visualizer
 from skmultiflow.data.sea_generator import SEAGenerator
 
-
 class TestTSNEVisualizer(unittest.TestCase):
     
     def test_wrong_stream(self):
