@@ -123,7 +123,7 @@ class GRLVQ(ClassifierMixin, StreamModel, BaseEstimator):
     def _optimize(self, X, y, random_state):
         # todo: implement it according to paper
         ## TEST START
-        lr_relevances = 0
+        lr_relevances = 1
         lr_prototypes = 1
         ## TEST END
         training_data = X
@@ -202,7 +202,8 @@ class GRLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         self.lambda_ = g[self.w_.size:]
         self.lambda_[self.lambda_ < 0] = 0.0000001
         self.lambda_ = self.lambda_ / self.lambda_.sum()
-        self.w_ -= g.reshape(g.size // nb_features, nb_features)[:nb_prototypes]
+        update = g.reshape(g.size // nb_features, nb_features)[:nb_prototypes]
+        self.w_ -= update
 
     def _compute_distance(self, x, w=None, lambda_=None):
         if w is None:
