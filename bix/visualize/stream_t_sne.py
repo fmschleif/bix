@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import datetime
+from sklearn.preprocessing import StandardScaler
 
 class T_sne_stream_visualizer():
     """t-distributed stochastical neighbour embedding
@@ -32,8 +33,9 @@ class T_sne_stream_visualizer():
     confidence : float
             Confidence used by the drift handling algorithm
     """
-    # TODO: implement Z-trans to normalize each batch
-    def __init__(self, stream, path=None, drift_handling='KS', confidence=0.001):
+    
+    def __init__(self, stream, path=None, drift_handling='KS', 
+                 confidence=0.001, normalize=False):
         if not isinstance(stream, Stream):
             raise TypeError('Wrong type, expected Stream, but was ', type(stream))
         else:
@@ -41,6 +43,7 @@ class T_sne_stream_visualizer():
         
         self.path = path
         self.confidence = confidence
+        self.normalize = normalize
         
         if (drift_handling == 'KS' or drift_handling=='ADWIN'):
             self.drift_handling = drift_handling
@@ -118,6 +121,10 @@ class T_sne_stream_visualizer():
         perplex=5
         min_kl = 1
         
+        if (self.normalize):
+            stdsc = StandardScaler()
+            X_batch = stdsc.fit_transform(X=X_batch)
+        
         while perplex <= 50:
             t_sne = TSNE(perplexity=perplex, n_iter=1000)
             X_embedding = t_sne.fit_transform(X=X_batch, y=y_batch)
@@ -152,6 +159,8 @@ if __name__ == '__main__':
                             position=1500),
                 path=None,
                 drift_handling='KS',
-                confidence=0.001)
+                confidence=0.001,
+                normalize=True)
+                
     visualizer.visualize()
         
