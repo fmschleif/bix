@@ -7,35 +7,32 @@ from bix.data.twitter.twitter_retriever import TwitterRetriever
 
 class TestTwitterQueryResults(unittest.TestCase):
     """
-    All test assume that the environment variables are set up accordingly or they will fail
+    All test assume that the environment variables are set up accordingly or the config.py has been set up accordingly
+        or they will fail
 
-    The ResourceWarning returned by the unittests is because of the Resource-Model of the Twitter API I use
+    The ResourceWarning returned by the unittests is because of the Resource-Model of the underlying Twitter API that
+        is used
     """
 
     def test_retrieval_as_csv(self):
         tr = TwitterRetriever()
-        result = tr.search_text(['Würzburg', 'Berlin'], start_date=date.today() - timedelta(days=7),
-                                end_date=date.today(), count=10, lang='de')
-        result.to_csv('test.csv')
+        tr.search_text(['Würzburg', 'Berlin'], count=10, lang='de', output_file='test.csv')
         os.remove('test.csv')
 
     def test_retrieval_as_list(self):
         tr = TwitterRetriever()
-        result = tr.search_text(['Würzburg', 'Berlin'], start_date=date.today() - timedelta(days=7),
-                                end_date=date.today(), count=10, lang='de')
-        result_map = result.to_list()
-        for i in range(0, 10):
-            self.assertTrue('Würzburg', result_map[i][0])
-        for i in range(10, 20):
-            self.assertTrue('Berlin', result_map[i][0])
+        result = tr.search_text(['Würzburg', 'Berlin'], count=10, lang='de')
+        self.assertEqual(len(result), 20)
 
     def test_hashtag_search(self):
         tr = TwitterRetriever()
-        result = tr.search_hashtags(['Würzburg', '#Berlin'], start_date=date.today() - timedelta(days=7),
-                                end_date=date.today(), count=10, lang='de')
-        result_list = result.to_list()
-        for r in result_list:
+        result = tr.search_hashtags(['Würzburg', '#Berlin'], count=10, lang='de')
+        for r in result:
             self.assertTrue(r[0].startswith('#'))
+
+    def test_date(self):
+        tr = TwitterRetriever()
+        tr.search_text(['Würzburg'], start_date=date.today() - timedelta(days=7), end_date=date.today())
 
     def test_date_in_past(self):
         tr = TwitterRetriever()
