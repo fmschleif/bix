@@ -12,7 +12,7 @@ import numpy as np
 
 from datetime import *
 
-from twitter import Status
+from twitter import Status, TwitterError
 
 from bix.data.twitter.config import TWITTER_CONFIG
 
@@ -61,9 +61,9 @@ class TwitterRetriever:
         tr.CONSUMER_SECRET = consumer_secret
         tr.api = tr.init_api()
 
-    def search_text(self, query_strings: List[str], start_date: date = date.today() - timedelta(days=7),
-                    end_date: date = date.today(), count: int = 15, lang: str = 'de', output_file=None,
-                    max_ids: List[int] = None) -> Tuple[List[List[str]], List[int]]:
+    def search_text(self, query_strings: List[str], start_date: date = None,# date.today() - timedelta(days=7)
+                    end_date: date = None, #date.today(),
+                    count: int = 15, lang: str = 'de', output_file=None) -> List[List[str]]:
         """
         Search for a number of strings on Twitter.
 
@@ -78,32 +78,45 @@ class TwitterRetriever:
         self.validate_date(end_date)
 
         results = []
-        new_max_ids = []
         for i, s in enumerate(query_strings):
 
             tweet_amount = count
-            last_max_id = max_ids[i] + 1 if max_ids is not None else None
+            last_max_id = None
             while tweet_amount > 0:
-                res = self.api.GetSearch(term=s, until=end_date, since=start_date, count=tweet_amount, lang=lang,
-                                         include_entities=True, max_id=last_max_id, return_json=True)
-                statuses = [Status.NewFromJsonDict(x) for x in res.get('statuses', '')]
+                statuses = None
+                try:
+                    statuses = self.api.GetSearch(term=s, until=end_date, since=start_date, count=tweet_amount, lang=lang,
+                                             max_id=last_max_id, result_type='recent')
+                except TwitterError as e:
+                    if e.message[0]['code'] == 88: # Rate limit exceeded
+                        print(f"Warning: aborting pulling tweets for query '{s}' after {count - tweet_amount} tweets, "
+                              f"because of error: '{e.message[0]['message']}'")
+                        break
+                    else:
+                        raise e
                 if len(statuses) == 0:
+                    print(f"Warning: aborting pulling tweets for query '{s}' after {count - tweet_amount} tweets, "
+                          f"because there are no more available")
                     break  # out of results
                 results.extend([[s] + t.text.split() for t in statuses])
                 tweet_amount = tweet_amount - len(statuses)
-                next_results_link: str = res['search_metadata']['next_results']
-                last_max_id = int(next_results_link.split('&')[0].split('=')[1])
-            new_max_ids.append(last_max_id)
+                last_max_id = statuses[-1].id_str
+
+        results = self.remove_duplicates(results)
 
         if output_file is not None:
-            df = pandas.DataFrame(results)
-            df.to_csv(output_file, encoding='utf-8', mode='a', header=False, index=False)
+            results2 = results
+            if Path(output_file).is_file():
+                file_df = pandas.read_csv(output_file, header=None)
+                results2 = results2 + file_df.values.tolist()
+                results2 = self.remove_duplicates(results2) # remove duplicates again, to merge the results with the file
+            df = pandas.DataFrame(results2)
+            df.to_csv(output_file, encoding='utf-8', header=False, index=False)
 
-        return results, new_max_ids
+        return results
 
     def search_hashtags(self, hashtags: List[str], start_date: date = None, end_date: date = None,
-                        count: int = 15, lang: str = 'de', output_file=None,
-                        max_ids: List[int] = None) -> Tuple[List[List[str]], List[int]]:
+                        count: int = 15, lang: str = 'de', output_file=None) -> List[List[str]]:
         """
         Search for a number of hashtags on Twitter.
 
@@ -118,7 +131,7 @@ class TwitterRetriever:
         """
         return self.search_text(query_strings=[h if h.startswith('#') else '#' + h for h in hashtags],
                                 start_date=start_date, end_date=end_date, count=count, lang=lang,
-                                output_file=output_file, max_ids=max_ids)
+                                output_file=output_file)
 
     def get_access_token(self) -> str:
         """
@@ -171,6 +184,13 @@ class TwitterRetriever:
                            consumer_secret=self.CONSUMER_SECRET,
                            access_token_key=self.ACCESS_TOKEN,
                            access_token_secret=self.ACCESS_SECRET)
+
+    def remove_duplicates(self, lst: List[List[str]]):
+        for e in lst: # remove 'RT' from tweets (retweets)
+            if e[1] == 'RT':
+                del e[1]
+        s = set([tuple(e) for e in lst])
+        return list([list(e) for e in s])
 
     def validate_date(self, var: date):
         """
