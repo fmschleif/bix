@@ -112,14 +112,14 @@ class TwitterRetriever:
                                                   max_id=last_max_id, result_type='recent')
                 except TwitterError as e:
                     if e.message[0]['code'] == 88:  # Rate limit exceeded
-                        print(f"Warning: aborting pulling tweets for query '{s}' after {count - tweet_amount} tweets, "
-                              f"because of error: '{e.message[0]['message']}'")
+                        print(f"Warning: aborting pulling tweets for query '{s}' after {int(count - tweet_amount)} "
+                              f"tweets, because of error: '{e.message[0]['message']}'")
                         break
                     else:
                         raise e
-                if len(statuses) == 0:
-                    print(f"Warning: aborting pulling tweets for query '{s}' after {count - tweet_amount} tweets, "
-                          f"because there are no more available")
+                if len(statuses) <= 1:
+                    print(f"Warning: aborting pulling tweets for query '{s}' after {int(count - tweet_amount)} tweets, "
+                          f"because there are no more tweets available")
                     break  # out of results
                 results.extend([[s] + t.text.split() for t in statuses])
                 tweet_amount = tweet_amount - len(statuses)

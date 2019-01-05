@@ -22,5 +22,5 @@ if __name__ == '__main__':
         c = Counter()
         for e in map(lambda x: x[0], res):
             c[e] += 1
-        print(f'pulled tweets: {c}')
+        print(f'unique tweets: {c.items()}')
         sleep(time_to_wait)
