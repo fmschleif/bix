@@ -270,24 +270,22 @@ class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
                 self.w_ = np.empty([np.sum(nb_ppc), nb_features], dtype=np.double)
                 self.c_w_ = np.empty([nb_ppc.sum()], dtype=self.classes_.dtype)
             pos = 0
-            for actClass in range(len(self.classes_)):
-                nb_prot = nb_ppc[actClass] # nb_ppc: prototypes per class
-                if(self.protos_initialized[actClass] == 0 and actClass in unique_labels(train_lab)):
+            for actClassIdx in range(len(self.classes_)):
+                actClass = self.classes_[actClassIdx]
+                nb_prot = nb_ppc[actClassIdx] # nb_ppc: prototypes per class
+                if(self.protos_initialized[actClassIdx] == 0 and actClass in unique_labels(train_lab)):
                     mean = np.mean(
-                        train_set[train_lab == self.classes_[actClass], :], 0)
+                        train_set[train_lab == actClass, :], 0)
                     self.w_[pos:pos + nb_prot] = mean + (
                             random_state.rand(nb_prot, nb_features) * 2 - 1)
                     if math.isnan(self.w_[pos, 0]):
-                        print('null: ', actClass)
-                        self.protos_initialized[actClass] = 0
+                        print('Prototype is NaN: ', actClass)
+                        self.protos_initialized[actClassIdx] = 0
                     else:
-                        self.protos_initialized[actClass] = 1
-    
-                    self.c_w_[pos:pos + nb_prot] = self.classes_[actClass]
-                    pos += nb_prot
-                elif(self.protos_initialized[actClass] == 0):
-                    self.w_[pos:pos + nb_prot] = 0
-                    pos += nb_prot
+                        self.protos_initialized[actClassIdx] = 1
+
+                    self.c_w_[pos:pos + nb_prot] = actClass
+                pos += nb_prot
         else:
             x = validation.check_array(self.initial_prototypes)
             self.w_ = x[:, :-1]
