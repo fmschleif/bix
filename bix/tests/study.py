@@ -31,7 +31,16 @@ def cross_validation_standard_test():
     cv.test()
     cv.save_summary()
 
+def cross_validation_reoccuring_test():
+    clfs = [RRSLVQ(prototypes_per_class=2), HAT()]
+    
+    cv = CrossValidation(clfs=clfs,max_samples=500,test_size=1)
+    cv.streams= cv.init_reoccuring_streams()
+    cv.test()
+    cv.save_summary()
+
 if __name__ == "__main__":  
   # parameter_grid_search_test()
- cross_validation_standard_test()
- cross_validation_real_world_test()
+#  cross_validation_standard_test()
+ #cross_validation_real_world_test()
+ cross_validation_reoccuring_test()
