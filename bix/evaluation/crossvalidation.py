@@ -113,6 +113,7 @@ class CrossValidation(Study):
             local_result = []
             for i in range(self.test_size):
                 stream.prepare_for_use()
+                stream.name = stream.basename if stream.name==None else stream.name
                 path_to_save = clf.__class__.__name__+"_performance_on_"+stream.name+"_"+self.date+".csv"
                 evaluator = EvaluatePrequential(
                     show_plot=False, max_samples=self.max_samples, restart_stream=True, batch_size=10, metrics=self.metrics,output_file=path_to_save)
