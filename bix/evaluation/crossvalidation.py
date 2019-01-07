@@ -91,10 +91,10 @@ class CrossValidation(Study):
     def test(self):
         start = time.time()
         grid = self.create_grid(self.clfs,self.streams)
-        self.result.extend(Parallel(n_jobs=-1)
-                           (delayed(self.grid_job)(elem[0],elem[1]) for elem in grid))
-        # for elem in grid:
-        #     result.append(self.grid_job(elem[0],elem[1]))
+        # self.result.extend(Parallel(n_jobs=-1)
+        #                    (delayed(self.grid_job)(elem[0],elem[1]) for elem in grid))
+        for elem in grid:
+            self.result.append(self.grid_job(elem[0],elem[1]))
         self.result = self.process_results(self.clfs,self.result)
         end = time.time() - start
         print("\n--------------------------\n")
