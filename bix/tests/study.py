@@ -17,7 +17,7 @@ def parameter_grid_search_test():
     gs.save_summary()
 
 def cross_validation_real_world_test():
-    clfs = [RRSLVQ(), RSLVQ()]
+    clfs = [RRSLVQ(prototypes_per_class=2), HAT()]
     
     cv = CrossValidation(clfs=clfs,max_samples=500,test_size=1)
     cv.streams = cv.init_real_world()
@@ -25,7 +25,7 @@ def cross_validation_real_world_test():
     cv.save_summary()
 
 def cross_validation_standard_test():
-    clfs = [RRSLVQ(), RSLVQ()]
+    clfs = [RRSLVQ(prototypes_per_class=2), HAT()]
     
     cv = CrossValidation(clfs=clfs,max_samples=500,test_size=1)
     cv.test()
@@ -33,4 +33,5 @@ def cross_validation_standard_test():
 
 if __name__ == "__main__":  
   # parameter_grid_search_test()
-  cross_validation_standard_test()
+ cross_validation_standard_test()
+ cross_validation_real_world_test()

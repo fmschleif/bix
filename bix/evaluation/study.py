@@ -146,9 +146,9 @@ class Study():
             # poker = FileStream('poker.csv') #label failure
             weather = FileStream(os.path.realpath('weather.csv'))
             gmsc = FileStream(os.path.realpath('gmsc.csv'))
-            airlines = FileStream(os.path.realpath('airlines.csv')) #label failure
+          #  airlines = FileStream(os.path.realpath('airlines.csv')) #label failure
             moving_squares = FileStream(os.path.realpath('moving_squares.csv'))
-            return [covertype,elec, weather, gmsc,airlines, moving_squares]
+            return [covertype,elec, weather, gmsc, moving_squares]
         except Exception as e: 
             raise FileNotFoundError("Real-world datasets can't loaded! Check directory ")
             return []

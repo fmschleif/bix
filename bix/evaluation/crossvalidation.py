@@ -9,7 +9,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-
+import copy
 from skmultiflow.evaluation.evaluate_prequential import EvaluatePrequential
 from bix.evaluation.study import Study
 
@@ -85,7 +85,7 @@ class CrossValidation(Study):
         grid = []
         for clf in clfs:
             for stream in streams:
-                grid.append([clf,stream])
+                grid.append([copy.deepcopy(clf),stream])
         return grid
 
     def test(self):
@@ -107,8 +107,6 @@ class CrossValidation(Study):
             self.chwd_root()
             os.chdir(os.path.join(os.getcwd(),self.path))
             print(clf.__class__.__name__)
-            try: clf.reset()
-            except NotImplementedError: clf.__init__()
             clf = self.set_clf_params(clf, params, stream.name)
             local_result = []
             for i in range(self.test_size):
