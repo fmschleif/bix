@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import datetime
+from sklearn.preprocessing import StandardScaler
 
 class T_sne_stream_visualizer():
     """t-distributed stochastical neighbour embedding
@@ -23,21 +24,26 @@ class T_sne_stream_visualizer():
     Parameters
     ----------
     stream : Instance of skmultiflow.data.base_stream
-             Stream which will be visualized
+            Stream which will be visualized
     path :   string
-             Relative or absolute path which represent the path where figures are
-             saved to
-    drift_handling : String, ('KS' or 'ADWIN')
-             Indicates which drift detector will be used for splitting the batches
+            Relative or absolute path which represent the path where figures are
+            saved to
+    drift_handling : string, ('KS' or 'ADWIN')
+            Indicates which drift detector will be used for splitting the batches
+    confidence : float
+            Confidence used by the drift handling algorithm
     """
-    # TODO: implement Z-trans to normalize each batch
-    def __init__(self, stream, path=None, drift_handling='KS'):
+    
+    def __init__(self, stream, path=None, drift_handling='KS', 
+                 confidence=0.001, normalize=False):
         if not isinstance(stream, Stream):
             raise TypeError('Wrong type, expected Stream, but was ', type(stream))
         else:
             self.stream = stream
         
         self.path = path
+        self.confidence = confidence
+        self.normalize = normalize
         
         if (drift_handling == 'KS' or drift_handling=='ADWIN'):
             self.drift_handling = drift_handling
@@ -80,7 +86,7 @@ class T_sne_stream_visualizer():
         detections = []
         init = True
         
-        drift_tsne = DriftTSNE(drift_handling=self.drift_handling, confidence=0.001)
+        drift_tsne = DriftTSNE(drift_handling=self.drift_handling, confidence=self.confidence)
         
         iterations = 3000
         
@@ -115,6 +121,10 @@ class T_sne_stream_visualizer():
         perplex=5
         min_kl = 1
         
+        if (self.normalize):
+            stdsc = StandardScaler()
+            X_batch = stdsc.fit_transform(X=X_batch)
+        
         while perplex <= 50:
             t_sne = TSNE(perplexity=perplex, n_iter=1000)
             X_embedding = t_sne.fit_transform(X=X_batch, y=y_batch)
@@ -148,6 +158,9 @@ if __name__ == '__main__':
                             width=1,
                             position=1500),
                 path=None,
-                drift_handling='KS')
+                drift_handling='KS',
+                confidence=0.001,
+                normalize=True)
+                
     visualizer.visualize()
         
