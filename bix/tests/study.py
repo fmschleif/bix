@@ -17,7 +17,7 @@ def parameter_grid_search_test():
     gs.save_summary()
 
 def cross_validation_test():
-    clfs = [RRSLVQ(),NaiveBayes()]
+    clfs = [RRSLVQ(), NaiveBayes()]
     
     cv = CrossValidation(clfs=clfs,max_samples=500,test_size=1)
     cv.test()

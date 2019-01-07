@@ -12,7 +12,7 @@ from skmultiflow.data.sea_generator import SEAGenerator
 from skmultiflow.evaluation.evaluate_prequential import EvaluatePrequential
 import numpy as np
 
-class TestGRSLVQ(unittest.TestCase):
+class TestGRLVQ(unittest.TestCase):
     # TODO: implement + adjust tests as soon as method works fine
     
     def test_example(self):

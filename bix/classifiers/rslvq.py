@@ -345,6 +345,7 @@ class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         --------
         self
         """
+        # if set(unique_labels(y)).issubset(set(self.classes_)) or self.initial_fit == True:
         if unique_labels(y) in self.classes_ or self.initial_fit == True:
             X, y, random_state = self._validate_train_parms(X, y, classes=classes)
         else:
