@@ -23,14 +23,6 @@ def cross_validation_test():
     cv.test()
     cv.save_summary()
 
-def test_grid():
-    clfs = [RRSLVQ(),NaiveBayes()]
-    cv = CrossValidation(clfs=clfs,max_samples=500,test_size=1)
-    cv.test_grid()
-    cv.save_summary()
-    print("here")
-
 if __name__ == "__main__":  
   parameter_grid_search_test()
   cross_validation_test()
-  test_grid()
