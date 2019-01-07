@@ -136,20 +136,21 @@ class Study():
 
     def init_real_world(self):
         """Initialize real world data streams, will be loaded from file"""
-        if not os.path.exists("datasets/"):
-            raise FileNotFoundError("Folder for data cannot be found! Should be datasets/")
-         
+    
+        if not os.path.join("..","..","datasets"):
+            raise FileNotFoundError("Folder for data cannot be found! Should be datasets")
+        os.chdir(os.path.join("..","..","datasets"))
         try:   
-            #covertype = FileStream('datasets/covtype.csv') Label failure
-            elec = FileStream('../datasets/elec.csv')
-            #poker = FileStream('datasets/poker.csv') label failure
-            weather = FileStream('../datasets/weather.csv')
-            gmsc = FileStream('../datasets/gmsc.csv')
-           # airlines = FileStream('datasets/airlines.csv') label failure
-            moving_squares = FileStream('../datasets/moving_squares.csv')
-            return [elec, weather, gmsc, moving_squares]
+            covertype = FileStream(os.path.realpath('covtype.csv')) # Label failure
+            elec = FileStream(os.path.realpath('elec.csv'))
+            # poker = FileStream('poker.csv') #label failure
+            weather = FileStream(os.path.realpath('weather.csv'))
+            gmsc = FileStream(os.path.realpath('gmsc.csv'))
+            airlines = FileStream(os.path.realpath('airlines.csv')) #label failure
+            moving_squares = FileStream(os.path.realpath('moving_squares.csv'))
+            return [covertype,elec, weather, gmsc,airlines, moving_squares]
         except Exception as e: 
-            raise FileNotFoundError("Real-world datasets can't loaded! Check directory datasets/")
+            raise FileNotFoundError("Real-world datasets can't loaded! Check directory ")
             return []
         
     def chwd_root(self):
