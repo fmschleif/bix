@@ -14,9 +14,6 @@ import numpy as np
 
 class TestGRLVQ(unittest.TestCase):
     # TODO: implement + adjust tests as soon as method works fine
-    
-    def test_example(self):
-        self.assertTrue(True)
         
     def test_correct_init(self):
         GRLVQ(prototypes_per_class=2, regularization=0.0,
