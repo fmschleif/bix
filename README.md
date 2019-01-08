@@ -21,8 +21,14 @@ from bix.classifiers.rslvq import RSLVQ
 <p style="color:#FF0000";>Note, this is work in progress, names could be refactored soon.</p>
 
 ## Datasets 
-- Weather 
-Elwell et al. introduced this dataset in [6]. In the period of 1949-1999 eight different features such as temperature,  pressure wind speed etc. were measured at the Offutt Air Force Base in Bellevue, Nebraska. The target is to predict whether it is going to rain on a certain day or not. The dataset contains 18159 instances with an imbalance towards no rain (69%).
+- Airlines 
+- Forest Cover Type
+- Electricity market dataset
+- Give me some credit(GMSC)
+- Moving Squares (Artificial)
+- Music
+- Poker Hand
+- Weather
 
 ## To-Do
 - [ ] Add multiflow as a dependency (depends on https://github.com/scikit-multiflow/scikit-multiflow/issues/83)
