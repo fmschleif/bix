@@ -94,7 +94,7 @@ class GRLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         self.display=display
         self.max_iter=max_iter
         self.lambda_ = None
-        print('Be careful this is WIP')
+        print('GRLVQ - Be careful this is WIP')
 
     def _optfun(self, variables, training_data, label_equals_prototype):
         n_data, n_dim = training_data.shape

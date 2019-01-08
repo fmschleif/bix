@@ -56,7 +56,14 @@ class Study():
         except Exception as e: raise FileNotFoundError("Error while creating Directory!")
     
     def init_standard_streams(self):
-        """Initialize standard data streams"""
+        """Initialize standard data streams
+        
+        Standard streams are inspired by the experiment settings of 
+        Gomes, Heitor Murilo & Bifet, Albert & Read, Jesse & Barddal, Jean Paul & 
+        Enembreck, Fabrício & Pfahringer, Bernhard & Holmes, Geoff & 
+        Abdessalem, Talel. (2017). Adaptive random forests for evolving data 
+        stream classification. Machine Learning. 1-27. 10.1007/s10994-017-5642-8. 
+        """
         agrawal_a = ConceptDriftStream(stream=AGRAWALGenerator(random_state=112, perturbation=0.1), 
                             drift_stream=AGRAWALGenerator(random_state=112, 
                                                           classification_function=2, perturbation=0.1),
