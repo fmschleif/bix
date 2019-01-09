@@ -15,7 +15,7 @@ from skmultiflow.core.base import StreamModel
 from sklearn.utils import validation
 from sklearn.utils.validation import check_is_fitted
 
-class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
+class ARSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
     """Robust Soft Learning Vector Quantization for Streaming and Non-Streaming Data
     By choosing another gradient descent method the RSLVQ can be used as an adaptive version.
     By setting the batch_size higher than 1, the algorithm works in batch mode.

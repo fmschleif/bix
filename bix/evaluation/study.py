@@ -150,7 +150,7 @@ class Study():
         try:   
             covertype = FileStream(os.path.realpath('covtype.csv')) # Label failure
             elec = FileStream(os.path.realpath('elec.csv'))
-            # poker = FileStream('poker.csv') #label failure
+            poker = FileStream('poker.csv') #label failure
             weather = FileStream(os.path.realpath('weather.csv'))
             gmsc = FileStream(os.path.realpath('gmsc.csv'))
           #  airlines = FileStream(os.path.realpath('airlines.csv')) #label failure
