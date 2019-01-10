@@ -13,23 +13,23 @@ from bix.classifiers.adaptive_rslvq import ARSLVQ
 from skmultiflow.trees.hoeffding_tree import HoeffdingTree
 from skmultiflow.meta.oza_bagging import OzaBagging
 
-def test_parameter_grid_search_arslvq(self):
-    grid = {"sigma": np.arange(2,3,2), "prototypes_per_class": np.arange(2,3,2)}
-    clf = ARSLVQ()
-    gs = GridSearch(clf=clf,grid=grid,max_samples=1000)
+def test_parameter_grid_search_arslvq():
+    grid = {"sigma": np.arange(2,11,2), "prototypes_per_class": np.arange(2,11,2)}
+    clf = ARSLVQ(gradient_descent="Adadelta")
+    gs = GridSearch(clf=clf,grid=grid,max_samples=50000)
     gs.search()
     gs.save_summary()
 
-def test_parameter_grid_search_rslvq(self):
-    grid = {"sigma": np.arange(2,3,2), "prototypes_per_class": np.arange(2,3,2)}
+def test_parameter_grid_search_rslvq():
+    grid = {"sigma": np.arange(2,11,2), "prototypes_per_class": np.arange(2,1,2)}
     clf = RSLVQ()
-    gs = GridSearch(clf=clf,grid=grid,max_samples=1000)
+    gs = GridSearch(clf=clf,grid=grid,max_samples=50000)
     gs.search()
     gs.save_summary()
 
 def test_grid():
     clfs = [ARSLVQ(gradient_descent="Adadelta"),RSLVQ(),HoeffdingTree(),HAT(),OzaBagging(base_estimator=KNN()),OzaBaggingAdwin(base_estimator=KNN()),AdaptiveRandomForest(),SAMKNN()]
-    cv = CrossValidation(clfs=clfs,max_samples=500,test_size=1)
+    cv = CrossValidation(clfs=clfs,max_samples=1000000,test_size=5)
     cv.streams = cv.init_standard_streams()+cv.init_real_world()+ cv.init_reoccuring_streams()
     cv.test()
     cv.save_summary()
@@ -37,4 +37,6 @@ def test_grid():
 
 
 if __name__ == "__main__":  
+  test_parameter_grid_search_arslvq()
+  test_parameter_grid_search_rslvq()
   test_grid()
