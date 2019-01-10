@@ -369,7 +369,6 @@ class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         else:
             #self.cd_handling(X,y)
             print('Class {} was not learned - please declare all classes in first call of fit/partial_fit'.format(y))
-            #raise ValueError('Class {} was not learned - please declare all classes in first call of fit/partial_fit'.format(y))
 
         self.counter = self.counter + 1
         if self.drift_detector is not None and self.concept_drift_detection(X,y):

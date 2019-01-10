@@ -12,6 +12,7 @@ from skmultiflow.lazy.sam_knn import SAMKNN
 from bix.classifiers.adaptive_rslvq import ARSLVQ
 from skmultiflow.trees.hoeffding_tree import HoeffdingTree
 from skmultiflow.meta.oza_bagging import OzaBagging
+
 def test_parameter_grid_search_arslvq(self):
     grid = {"sigma": np.arange(2,3,2), "prototypes_per_class": np.arange(2,3,2)}
     clf = ARSLVQ()
