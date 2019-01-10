@@ -57,9 +57,10 @@ class ARSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
 
     def __init__(self, prototypes_per_class=1, initial_prototypes=None,
                  sigma=1.0, gradient_descent='SGD', random_state=None,
-                 decay_rate=0.9, batch_size=1):
+                 decay_rate=0.9, batch_size=1, learning_rate=0.001):
         self.sigma = sigma
         self.random_state = random_state
+        self.learning_rate = learning_rate
         self.epsilon = 1e-8
         self.initial_prototypes = initial_prototypes
         self.prototypes_per_class = prototypes_per_class
@@ -67,7 +68,7 @@ class ARSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         self.classes_ = []
         self.decay_rate = decay_rate
         self.batch_size = batch_size
-        allowed_gradient_descent = ['SGD', 'Adadelta']
+        allowed_gradient_descent = ['SGD', 'Adadelta', 'RMSprop']
         if gradient_descent in allowed_gradient_descent:
             self.gradient_descent = gradient_descent
         else:
@@ -204,9 +205,8 @@ class ARSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
                         # Attract/Distract prototype to/from data point
                         self.w_[j] += step
                         
-                k += self.batch_size          
-
-
+                k += self.batch_size
+                
                 for j in range(prototypes.shape[0]):
                     d = (xi - prototypes[j])
                     
@@ -230,6 +230,32 @@ class ARSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
                     
                     # Attract/Distract prototype to/from data point
                     self.w_[j] += step
+                
+        elif(self.gradient_descent=='RMSprop'):
+            """Implementation of RMSprop"""
+            n_data, n_dim = X.shape
+            nb_prototypes = self.c_w_.size
+            prototypes = self.w_.reshape(nb_prototypes, n_dim)
+
+            for i in range(n_data):
+                xi = X[i]
+                c_xi = y[i]
+                for j in range(prototypes.shape[0]):
+                    d = (xi - prototypes[j])
+                    
+                    if self.c_w_[j] == c_xi:
+                        gradient = (self._p(j, xi, prototypes=self.w_, y=c_xi) -
+                                     self._p(j, xi, prototypes=self.w_)) * d
+                    else:
+                        gradient = - self._p(j, xi, prototypes=self.w_) * d
+                        
+                    # Accumulate gradient
+                    self.squared_mean_gradient[j] = 0.9 * self.squared_mean_gradient[j] + \
+                            0.1 * gradient ** 2
+                    
+                    # Update Prototype
+                    self.w_[j] += (self.learning_rate / ((self.squared_mean_gradient[j] + \
+                           self.epsilon) ** 0.5)) * gradient
      
     def _costf(self, x, w, **kwargs):
         d = (x - w)[np.newaxis].T 
