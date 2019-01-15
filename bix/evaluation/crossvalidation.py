@@ -13,6 +13,7 @@ import copy
 from skmultiflow.evaluation.evaluate_prequential import EvaluatePrequential
 from bix.evaluation.study import Study
 
+
 class CrossValidation(Study):
     """CrossValidation
     A class for creating cross validation studies. Executes a number
@@ -45,7 +46,7 @@ class CrossValidation(Study):
 
     Notes
     -----
-   
+
 
     Examples
     -----
@@ -62,14 +63,15 @@ class CrossValidation(Study):
     >>> cv.test()
     >>> cv.save_summary()
     """
-    
+
     def __init__(self, clfs, streams=None, test_size=1, path="study", param_path="search", max_samples=1000000):
         super().__init__(streams=streams, path=path)
 
         if type(clfs) == 'list':
             raise ValueError("Must be classifier list")
 
-        self.non_multiflow_metrics = ["time","sliding_mean","mean_std","window_std"]
+        self.non_multiflow_metrics = [
+            "time", "sliding_mean", "mean_std", "window_std"]
         self.clfs = clfs
         self.param_path = param_path
         self.test_size = test_size
@@ -81,61 +83,65 @@ class CrossValidation(Study):
     def reset(self):
         self.__init__(self, self.clfs)
 
-    def create_grid(self,clfs,streams):
+    def create_grid(self, clfs, streams):
         grid = []
         for clf in clfs:
             for stream in streams:
-                grid.append([copy.deepcopy(clf),stream])
+                grid.append([copy.deepcopy(clf), stream])
         return grid
 
     def test(self):
         start = time.time()
-        grid = self.create_grid(self.clfs,self.streams)
-        self.result.extend(Parallel(n_jobs=-1)
-                           (delayed(self.grid_job)(elem[0],elem[1]) for elem in grid))
+        grid = self.create_grid(self.clfs, self.streams)
+        self.result.extend(Parallel(n_jobs=-1,max_nbytes=None )
+                           (delayed(self.grid_job)(elem[0], elem[1]) for elem in grid))
         # for elem in grid:
         #     self.result.append(self.grid_job(elem[0],elem[1]))
-        self.result = self.process_results(self.clfs,self.result)
+        self.result = self.process_results(self.clfs, self.result)
         end = time.time() - start
         print("\n--------------------------\n")
         print("Duration of grid study validation "+str(end)+" seconds")
-    
-    def grid_job(self, clf,stream):
-            clf_result = []
-            time_result = []
-            params = self.search_best_parameters(clf)
-            self.chwd_root()
-            os.chdir(os.path.join(os.getcwd(),self.path))
-            print(clf.__class__.__name__)
-            clf = self.set_clf_params(clf, params, stream.name)
-            local_result = []
-            for i in range(self.test_size):
-                stream.prepare_for_use()
-                stream.name = stream.basename if stream.name==None else stream.name
-                path_to_save = clf.__class__.__name__+"_performance_on_"+stream.name+"_"+self.date+".csv"
-                evaluator = EvaluatePrequential(
-                    show_plot=False, max_samples=self.max_samples, restart_stream=True, batch_size=10, metrics=self.metrics,output_file=path_to_save)
-                evaluator.evaluate(stream=stream, model=clf)
-                saved_metric = pd.read_csv(path_to_save,comment='#',header=0)
-                stds = np.std(saved_metric.values[:,1:3],axis=0).tolist()
-                sliding_mean = [np.mean(saved_metric.values[:,2],axis=0)]
-                output= np.array([[m for m in evaluator._data_buffer.data[n]["mean"]] for n in evaluator._data_buffer.data]+[
-                                    [evaluator.running_time_measurements[0]._total_time]]).T.flatten().tolist()+sliding_mean+stds
-                print(path_to_save+" "+str(output))
-                local_result.append(output)
 
-            clf_result= np.mean(local_result, axis=0).tolist()
+    def grid_job(self, clf, stream):
+        clf_result = []
+        time_result = []
+        params = self.search_best_parameters(clf)
+        self.chwd_root()
+        os.chdir(os.path.join(os.getcwd(), self.path))
+        print(clf.__class__.__name__)
+        clf = self.set_clf_params(clf, params, stream.name)
+        local_result = []
+        for i in range(self.test_size):
+            stream.prepare_for_use()
+            stream.name = stream.basename if stream.name == None else stream.name
+            path_to_save = clf.__class__.__name__ + \
+                "_performance_on_"+stream.name+"_"+self.date+".csv"
+            evaluator = EvaluatePrequential(
+                show_plot=False, max_samples=self.max_samples, restart_stream=True, batch_size=10, metrics=self.metrics, output_file=path_to_save)
+            evaluator.evaluate(stream=stream, model=clf)
+            saved_metric = pd.read_csv(
+                path_to_save, comment='#', header=0).astype(np.float32)
+            saved_values = saved_metric.values[:, 1:3]
+            saved_values.setflags(write=1)
+            stds = np.std(saved_values, axis=0).tolist()
+            sliding_mean = [np.mean(saved_metric.values[:, 2], axis=0)]
+            output = np.array([[m for m in evaluator._data_buffer.data[n]["mean"]] for n in evaluator._data_buffer.data]+[
+                [evaluator.running_time_measurements[0]._total_time]]).T.flatten().tolist()+sliding_mean+stds
+            print(path_to_save+" "+str(output))
+            local_result.append(output)
 
-            return [clf.__class__.__name__]+clf_result
+        clf_result = np.mean(local_result, axis=0).tolist()
 
-    def process_results(self, clfs,result):
+        return [clf.__class__.__name__]+clf_result
+
+    def process_results(self, clfs, result):
         new_result = []
         for clf in self.clfs:
             name = clf.__class__.__name__
             r = [k[1:] for k in result if name in k]
             new_result.append([name]+r)
         return new_result
-            
+
     def set_clf_params(self, clf, df, name):
         if isinstance(df, pd.DataFrame):
             row = df[df['Stream'] == name]
@@ -147,8 +153,8 @@ class CrossValidation(Study):
 
     def search_best_parameters(self, clf):
         self.chwd_root()
-        os.chdir(os.path.join(os.getcwd(),self.param_path))
-        try:   
+        os.chdir(os.path.join(os.getcwd(), self.param_path))
+        try:
             files = glob.glob("Best_runs*"+clf.__class__.__name__+"*.csv")
 
             file = self.determine_newest_file(files)
@@ -160,10 +166,10 @@ class CrossValidation(Study):
         if len(self.result) == 0:
             raise ValueError("No results to save! Run test prior!")
         self.chwd_root()
-        os.chdir(os.path.join(os.getcwd(),self.path))
+        os.chdir(os.path.join(os.getcwd(), self.path))
         for i, metric in enumerate(self.metrics+self.non_multiflow_metrics):
             values = np.array([elem[1:]
-                            for elem in self.result])[:, :, i].tolist()
+                               for elem in self.result])[:, :, i].tolist()
             names = [[elem[0]] for elem in self.result]
             df = pd.DataFrame([n+elem for n, elem in zip(names, values)],
                               columns=["Classifier"]+[s.name for s in self.streams])
