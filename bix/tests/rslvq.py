@@ -9,7 +9,7 @@ from skmultiflow.evaluation.evaluate_prequential import EvaluatePrequential
 from skmultiflow.data.sea_generator import SEAGenerator
 from bix.classifiers.rslvq import RSLVQ
 import numpy as np
-from bix.classifiers.adaptive_rslvq import RSLVQ as ARSLVQ
+from bix.classifiers.adaptive_rslvq import ARSLVQ
 
 
 class TestRSLVQ(unittest.TestCase):
