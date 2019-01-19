@@ -61,6 +61,9 @@ class GridSearch(Study):
             raise ValueError("Parameter Grid must be set and be dictionary!")
 
         self.clf = clf
+        for elem in grid.values():
+            if elem.size == 0:
+                raise ValueError("Parameter Grid must be must contain arrays with size greater than zero!")
         self.grid = grid
         self.best_runs = []
         self.path = path
@@ -71,7 +74,7 @@ class GridSearch(Study):
 
     def search(self):
         start = time.time()
-        self.best_runs.extend(Parallel(n_jobs=-1)(delayed(self.self_job)(stream,self.clf,self.grid,self.metrics,self.max_samples) for stream in self.streams))
+        self.best_runs.extend(Parallel(n_jobs=-1,max_nbytes=None)(delayed(self.self_job)(stream,self.clf,self.grid,self.metrics,self.max_samples) for stream in self.streams))
         end = time.time() -start
         print("\n--------------------------\n")
         print("Duration of grid search "+str(end)+" seconds")
