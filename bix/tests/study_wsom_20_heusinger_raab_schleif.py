@@ -30,18 +30,32 @@ def test_parameter_grid_search_arslvq():
     gs.save_summary()
 
 
+# def test_grid():
+#     clfs = [ARSLVQ(gradient_descent="Adadelta"), RSLVQ(), HoeffdingTree(), HAT(), OzaBagging(
+#         base_estimator=KNN()), OzaBaggingAdwin(base_estimator=KNN()), AdaptiveRandomForest(), SAMKNN()]
+#     cv = CrossValidation(clfs=clfs, max_samples=1000000, test_size=5)
+#     cv.streams = cv.init_standard_streams() + cv.init_real_world() + \
+#         cv.init_reoccuring_streams()
+#     cv.test()
+#     cv.save_summary()
+# def test_grid():
+#     clfs = [OzaBagging(
+#         base_estimator=KNN()), OzaBaggingAdwin(base_estimator=KNN()), AdaptiveRandomForest(), SAMKNN()]
+#     cv = CrossValidation(clfs=clfs, max_samples=1000000, test_size=3)
+#     cv.streams = cv.init_standard_streams() + cv.init_real_world()
+#     cv.test()
+#     cv.save_summary()
+
+
 def test_grid():
-    clfs = [ARSLVQ(gradient_descent="Adadelta"), RSLVQ(), HoeffdingTree(), HAT(), OzaBagging(
-        base_estimator=KNN()), OzaBaggingAdwin(base_estimator=KNN()), AdaptiveRandomForest(), SAMKNN()]
-    cv = CrossValidation(clfs=clfs, max_samples=1000000, test_size=5)
-    cv.streams = cv.init_standard_streams() + cv.init_real_world() + \
-        cv.init_reoccuring_streams()
+    clfs = [OzaBagging(
+    base_estimator=KNN()), OzaBaggingAdwin(base_estimator=KNN()), AdaptiveRandomForest(), SAMKNN()]
+    cv = CrossValidation(clfs=clfs, max_samples=500, test_size=2)
+    cv.streams = [cv.init_real_world()[2]]
     cv.test()
     cv.save_summary()
-
-
 if __name__ == "__main__":
 
-    test_parameter_grid_search_arslvq()
-    test_parameter_grid_search_rslvq()
+    # test_parameter_grid_search_arslvq()
+    # test_parameter_grid_search_rslvq()
     test_grid()
