@@ -10,7 +10,8 @@ from skmultiflow.lazy.sam_knn import SAMKNN
 from bix.classifiers.adaptive_rslvq import ARSLVQ
 from skmultiflow.trees.hoeffding_tree import HoeffdingTree
 from skmultiflow.meta.oza_bagging import OzaBagging
-
+from skmultiflow.data.led_generator_drift import LEDGeneratorDrift
+from skmultiflow.data.concept_drift_stream import ConceptDriftStream
 
 def test_parameter_grid_search_rslvq():
     grid = {"sigma": np.arange(
@@ -50,8 +51,18 @@ def test_parameter_grid_search_arslvq():
 def test_grid():
     clfs = [OzaBagging(
     base_estimator=KNN()), OzaBaggingAdwin(base_estimator=KNN()), AdaptiveRandomForest(), SAMKNN()]
-    cv = CrossValidation(clfs=clfs, max_samples=500, test_size=2)
-    cv.streams = [cv.init_real_world()[2]]
+    cv = CrossValidation(clfs=clfs, max_samples=5000, test_size=1)
+    cv.streams = [ConceptDriftStream(stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=3),
+                            drift_stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=7),
+                            random_state=None,
+                            alpha=90.0, # angle of change grade 0 - 90
+                            position=250000,
+                            width=1),ConceptDriftStream(stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=3),
+                            drift_stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=7),
+                            random_state=None,
+                            alpha=90.0, # angle of change grade 0 - 90
+                            position=250000,
+                            width=50000)]
     cv.test()
     cv.save_summary()
 if __name__ == "__main__":

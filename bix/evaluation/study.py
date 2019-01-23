@@ -83,8 +83,10 @@ class Study():
         led_a = ConceptDriftStream(stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=3),
                             drift_stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=7),
                             random_state=None,
-                            alpha=90.0,
-                            position=250000)
+                            alpha=90.0, # angle of change grade 0 - 90
+                            position=250000,
+                            width=1)
+ 
         led_a.name = "led_a"
         led_g = ConceptDriftStream(stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=3),
                             drift_stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=7),
