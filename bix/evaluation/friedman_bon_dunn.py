@@ -107,6 +107,21 @@ def friedman_bon_dunn(algorithm_names, accuracys_per_algorithm, write_to_file=No
                 file.write('\n')
         file.write('\n')
         file.close()
+    else:
+        time = datetime.datetime.now()
+        print(50 * '-')
+        print('\n%s' % (str(time)))
+        print('\nCompared algorithms: %s' % (str(algorithm_names)))
+        print('\nFriedman p-value: %.8f --> %s' % (p_value, fried_sig_string))
+        print('\n')
+        print('Bonferroni Dunn Test: \n')
+        for i in range(len(comparsions_res)):
+            print(50 * '-')
+            for j in range(len(comparsions_res[i])):
+                print('%s: ' % (comparsions_res[i][j]))
+                print('p: %s' % str(p_res[i][j]))
+                print('Z: %s' % str(z_res[i][j]))
+                print('\n')
         
 if __name__ == '__main__':
     accuracys_per_algorithm = [[85.3, 71.5, 74.7], 
