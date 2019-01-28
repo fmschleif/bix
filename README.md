@@ -31,7 +31,7 @@ from bix.classifiers.rslvq import RSLVQ
 - Weather
 
 ## To-Do
-- [ ] Add multiflow as a dependency (depends on https://github.com/scikit-multiflow/scikit-multiflow/issues/83)
+- [x] Add multiflow as a dependency (depends on https://github.com/scikit-multiflow/scikit-multiflow/issues/83)
 - [ ] Extend and enhance README
 - [ ] Further develop this package
 - [ ] Documentation!

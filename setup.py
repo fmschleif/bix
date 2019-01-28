@@ -20,6 +20,7 @@ setuptools.setup(name='bix',
           'joblib',
           'scikit-learn',
           'python-twitter',
+          'scikit-multiflow'
       ],
       extras_require={
         'dev': [
