@@ -82,8 +82,8 @@ class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         ----------
         x : input value
         """
-        return self.beta * np.math.exp(self.beta * x) / (
-                1 + np.math.exp(self.beta * x)) ** 2
+        return self.beta * np.math.exp(-self.beta * x) / (
+                1 + np.math.exp(-self.beta * x)) ** 2
 
     def _validate_train_parms(self, train_set, train_lab, classes=None):
         if not isinstance(self.beta, int):
@@ -216,8 +216,8 @@ class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
                 training_data[idxc]) + (dwd.sum(0) -
                                         dcd.sum(0)) * prototypes[i]
         g[:nb_prototypes] = 1 / n_data * g[:nb_prototypes]
-        g = g * (1 + 0.0001 * random_state.rand(*g.shape) - 0.5)
-    
+        g = g * (1 + 0.0001 * (random_state.rand(*g.shape) - 0.5))     
+         
         self.w_ -= g.ravel().reshape(self.w_.shape)
 
     def _compute_distance(self, x, w=None):
