@@ -23,7 +23,7 @@ class TestGRLVQ(unittest.TestCase):
         stream = SEAGenerator(random_state=42)
         stream.prepare_for_use()
 
-        clf = GRLVQ(prototypes_per_class=2, regularization=0.0,
+        clf = GRLVQ(prototypes_per_class=2, regularization=5.0,
               beta=2, C=None)
 
         evaluator = EvaluatePrequential(pretrain_size=1, show_plot=False, max_samples=20000,
