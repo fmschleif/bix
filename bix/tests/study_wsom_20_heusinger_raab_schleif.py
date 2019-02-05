@@ -51,7 +51,7 @@ def test_parameter_grid_search_arslvq():
 def test_grid():
     clfs = [OzaBagging(
     base_estimator=KNN()), OzaBaggingAdwin(base_estimator=KNN()), AdaptiveRandomForest(), SAMKNN()]
-    cv = CrossValidation(clfs=clfs, max_samples=5000, test_size=1)
+    cv = CrossValidation(clfs=clfs, max_samples=1000000, test_size=1)
     cv.streams = [ConceptDriftStream(stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=3),
                             drift_stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=7),
                             random_state=None,

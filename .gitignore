@@ -147,3 +147,5 @@ venv.bak/
 .idea/
 bix/data/twitter/config.py
 datasets/covtype_new.csv
+
+bix/tests/fivetwo/*

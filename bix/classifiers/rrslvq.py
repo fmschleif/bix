@@ -13,7 +13,7 @@ from scipy.spatial.distance import cdist
 from bix.detectors.kswin import KSWIN
 from skmultiflow.core.base import StreamModel
 from sklearn import preprocessing
-
+from skmultiflow.drift_detection.adwin import ADWIN
 #!sr/bin/env python3
 #-*- coding: utf-8 -*-
 """
@@ -89,7 +89,7 @@ class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         if self.prototypes_per_class < 1:
             raise ValueError("Number of prototypes per class must be greater or equal to 1")
 
-        if self.drift_detector != "KS" and self.drift_detector != "DIST":
+        if self.drift_detector != "KS" and self.drift_detector != "DIST" and self.drift_detector != "ADWIN":
             raise ValueError("Drift detector must be either KS or DIST!")
         
         if self.confidence <= 0 or self.confidence >= 1:
@@ -399,6 +399,8 @@ class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         if self.init_drift_detection:
             if self.drift_detector == "KS":
                 self.cdd = [KSWIN(alpha=self.confidence) for elem in X.T]
+            if self.drift_detector == "ADWIN":
+                self.cdd = [ADWIN(delta=self.confidence) for elem in X.T]
             if self.drift_detector == "DIST":
                 self.cdd = [KSWIN(self.confidence) for c in self.classes_]
         self.init_drift_detection = False
@@ -438,7 +440,7 @@ class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
                 self.initial_prototypes = np.append(new_prototypes,labels[:,None],axis=1)
         else:
             labels = self.classes_  
-            new_prototypes = np.array([self.geometric_median(X[Y == l],"minimize") for l in labels])
+            new_prototypes = np.array([self.geometric_median(X[Y == l]) for l in labels])
             self.w_ = np.append(self.w_,new_prototypes,axis=0)
             self.c_w_ = np.append(self.c_w_,labels,axis=0)
             self.prototypes_per_class = self.prototypes_per_class + 1
