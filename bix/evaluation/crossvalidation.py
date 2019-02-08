@@ -173,7 +173,7 @@ class CrossValidation(Study):
             names = [[elem[0]] for elem in self.result]
             df = pd.DataFrame([n+elem for n, elem in zip(names, values)],
                               columns=["Classifier"]+[s.name for s in self.streams])
-            df = df.round(3)
+            df = df.round(4)
             df.to_csv(path_or_buf=str(np.random.randint(10))+"_CV_Study"+"_"+metric+"_"+self.date +
                       "_N_Classifier_"+str(len(self.clfs))+".csv", index=False)
 
