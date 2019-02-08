@@ -11,9 +11,9 @@ from skmultiflow.meta.oza_bagging_adwin import OzaBaggingAdwin
 from skmultiflow.lazy.sam_knn import SAMKNN
 
 def test_grid():
-    clfs = [RRSLVQ(),RSLVQ(),HAT(),OzaBaggingAdwin(base_estimator=KNN()),AdaptiveRandomForest(),SAMKNN()]
+    clfs = [RRSLVQ(prototypes_per_class=4,sigma=8),RSLVQ(prototypes_per_class=4,sigma=8),HAT(),OzaBaggingAdwin(base_estimator=KNN()),AdaptiveRandomForest(),SAMKNN()]
     cv = CrossValidation(clfs=clfs,max_samples=1000000,test_size=1)
-    cv.init_reoccuring_streams()
+    cv.streams = cv.init_reoccuring_streams()
     cv.test()
     cv.save_summary()
     print("here")
