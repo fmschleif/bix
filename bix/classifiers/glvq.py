@@ -65,16 +65,26 @@ class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
     """
 
     def __init__(self, prototypes_per_class=1, initial_prototypes=None,
-                 gtol=1e-5, beta=2, C=None, random_state=None):
+                 gtol=1e-5, beta=2, C=None, random_state=None,gradient_descent='SGD',decay_rate=0.9):
         
         self.prototypes_per_class = prototypes_per_class
         self.initial_prototypes = initial_prototypes
         self.beta = beta
+        self.epsilon = 1e-8
         self.gtol = gtol
         self.c = C
         self.random_state = random_state
         self.initial_fit = True
         self.classes_ = []
+        self.decay_rate = decay_rate
+        allowed_gradient_descent = ['SGD', 'Adadelta']
+        if gradient_descent in allowed_gradient_descent:
+            self.gradient_descent = gradient_descent
+        else:
+            raise ValueError('{} is not a valid parameter for '
+                             'gradient_descent, please use one '
+                             'of the following parameters:\n {}'
+                             .format(gradient_descent, allowed_gradient_descent))
 
     def phi_prime(self, x):
         """
@@ -162,6 +172,8 @@ class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
                     "classes={}\n"
                     "prototype labels={}\n".format(self.classes_, self.c_w_))
         if self.initial_fit:
+            self.squared_mean_gradient = np.zeros_like(self.w_)
+            self.squared_mean_step = np.zeros_like(self.w_)
             self.initial_fit = False
             
         ret = train_set, train_lab, random_state
@@ -206,6 +218,7 @@ class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         g = np.zeros(prototypes.shape)
         distcorrectpluswrong = 4 / distcorrectpluswrong ** 2
 
+        
         for i in range(nb_prototypes):
             idxc = i == pidxcorrect
             idxw = i == pidxwrong
@@ -217,8 +230,25 @@ class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
                                         dcd.sum(0)) * prototypes[i]
         g[:nb_prototypes] = 1 / n_data * g[:nb_prototypes]
         g = g * (1 + 0.0001 * (random_state.rand(*g.shape) - 0.5))     
-         
-        self.w_ -= g.ravel().reshape(self.w_.shape)
+        
+        if self.gradient_descent == "SGD":
+            self.w_ -= g.ravel().reshape(self.w_.shape)
+        else:
+            # Accumulate gradient
+            self.squared_mean_gradient= self.decay_rate * self.squared_mean_gradient+ \
+                        (1 - self.decay_rate) * g ** 2
+            
+            # Compute update/step
+            step = ((self.squared_mean_step + self.epsilon) / \
+                        (self.squared_mean_gradient + self.epsilon)) ** 0.5 * g
+                        
+            # Accumulate updates
+            self.squared_mean_step = self.decay_rate * self.squared_mean_step + \
+            (1 - self.decay_rate) * step ** 2    
+
+            self.w_ -= step.reshape(self.w_.shape)
+
+
 
     def _compute_distance(self, x, w=None):
         if w is None:

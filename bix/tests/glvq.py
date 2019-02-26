@@ -21,7 +21,7 @@ class TestGLVQ(unittest.TestCase):
         stream = SEAGenerator(random_state=42)
         stream.prepare_for_use()
 
-        clf = GLVQ(prototypes_per_class=2, beta=2, C=None)
+        clf = GLVQ(prototypes_per_class=2, beta=2, C=None,decay_rate=0.9,gradient_descent="Adadelta")
 
         evaluator = EvaluatePrequential(pretrain_size=1, show_plot=False, max_samples=20000,
                                         batch_size=1)
