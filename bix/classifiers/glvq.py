@@ -217,43 +217,36 @@ class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
 
         g = np.zeros(prototypes.shape)
         distcorrectpluswrong = 4 / distcorrectpluswrong ** 2
+
         
-        if self.gradient_descent == "SGD":
-            for i in range(nb_prototypes):
-                idxc = i == pidxcorrect
-                idxw = i == pidxwrong
+        for i in range(nb_prototypes):
+            idxc = i == pidxcorrect
+            idxw = i == pidxwrong
 
-                dcd = mu[idxw] * distcorrect[idxw] * distcorrectpluswrong[idxw]
-                dwd = mu[idxc] * distwrong[idxc] * distcorrectpluswrong[idxc]
-                g[i] = dcd.dot(training_data[idxw]) - dwd.dot(
-                    training_data[idxc]) + (dwd.sum(0) -
-                                            dcd.sum(0)) * prototypes[i]
-            g[:nb_prototypes] = 1 / n_data * g[:nb_prototypes]
-            g = g * (1 + 0.0001 * (random_state.rand(*g.shape) - 0.5))     
-            self.w_ -= g.ravel().reshape(self.w_.shape)
-        else:
-            for i in range(nb_prototypes):
-                idxc = i == pidxcorrect
-                idxw = i == pidxwrong
-
-                dcd = mu[idxw] * distcorrect[idxw] * distcorrectpluswrong[idxw]
-                dwd = mu[idxc] * distwrong[idxc] * distcorrectpluswrong[idxc]
-                g = dcd.dot(training_data[idxw]) - dwd.dot(
+            dcd = mu[idxw] * distcorrect[idxw] * distcorrectpluswrong[idxw]
+            dwd = mu[idxc] * distwrong[idxc] * distcorrectpluswrong[idxc]
+            g[i] = dcd.dot(training_data[idxw]) - dwd.dot(
                 training_data[idxc]) + (dwd.sum(0) -
                                         dcd.sum(0)) * prototypes[i]
-      
-                # Accumulate gradient
-                self.squared_mean_gradient[i] = self.decay_rate * self.squared_mean_gradient[i] + \
-                            (1 - self.decay_rate) * g ** 2
-                
-                # Compute update/step
-                step = ((self.squared_mean_step[i] + self.epsilon) / \
-                            (self.squared_mean_gradient[i] + self.epsilon)) ** 0.5 * g
-                            
-                # Accumulate updates
-                self.squared_mean_step[i] = self.decay_rate * self.squared_mean_step[i] + \
-                (1 - self.decay_rate) * step ** 2
-                self.w_[i] -= step
+        g[:nb_prototypes] = 1 / n_data * g[:nb_prototypes]
+        g = g * (1 + 0.0001 * (random_state.rand(*g.shape) - 0.5))     
+        
+        if self.gradient_descent == "SGD":
+            self.w_ -= g.ravel().reshape(self.w_.shape)
+        else:
+            # Accumulate gradient
+            self.squared_mean_gradient= self.decay_rate * self.squared_mean_gradient+ \
+                        (1 - self.decay_rate) * g ** 2
+            
+            # Compute update/step
+            step = ((self.squared_mean_step + self.epsilon) / \
+                        (self.squared_mean_gradient + self.epsilon)) ** 0.5 * g
+                        
+            # Accumulate updates
+            self.squared_mean_step = self.decay_rate * self.squared_mean_step + \
+            (1 - self.decay_rate) * step ** 2    
+            # step = np.array([abs(s)*1 if y==self.c_w_[idx] else abs(s)*-1 for idx,s in enumerate(step)])
+            self.w_ -= step.ravel().reshape(self.w_.shape)
 
 
     def _compute_distance(self, x, w=None):
