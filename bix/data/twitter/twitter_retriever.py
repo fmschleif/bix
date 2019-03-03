@@ -1,11 +1,10 @@
 """
 @author: Jonas Burger <post@jonas-burger.de>
 """
-
 import os
+
 import pandas
 import twitter
-import numpy as np
 
 from pathlib import Path
 from typing import List, Tuple
@@ -85,7 +84,7 @@ class TwitterRetriever:
     @classmethod
     def create_with_keys(cls, access_token: str, access_secret: str, consumer_key: str, consumer_secret: str):
 
-        tr = TwitterRetriever(searchForKeys=False)
+        tr = TwitterRetriever(search_for_keys=False)
         tr.ACCESS_TOKEN = access_token
         tr.ACCESS_SECRET = access_secret
         tr.CONSUMER_KEY = consumer_key
@@ -95,12 +94,12 @@ class TwitterRetriever:
 
     def search_text(self, query_strings: List[str], start_date: date = None,  # date.today() - timedelta(days=7)
                     end_date: date = None,  # date.today(),
-                    count: int = 15, lang: str = 'de', output_file=None) -> List[List[str]]:
+                    count: int = 15, lang: str = 'de', output_file=None, newest_first: bool=False) -> List[List[str]]:
         self.validate_date(start_date)
         self.validate_date(end_date)
 
         results = []
-        for i, s in enumerate(query_strings):
+        for i, s in enumerate(reversed(query_strings) if not newest_first else query_strings):
 
             tweet_amount = count
             last_max_id = None
@@ -125,13 +124,17 @@ class TwitterRetriever:
                 tweet_amount = tweet_amount - len(statuses)
                 last_max_id = statuses[-1].id_str
 
+        if not newest_first:
+            results.reverse()
+
         results = self.remove_duplicates(results)
 
         if output_file is not None:
             results2 = results
             if Path(output_file).is_file():
                 file_df = pandas.read_csv(output_file, header=None)
-                results2 = results2 + file_df.values.tolist()
+                results2 = (file_df.values.tolist() + results2) if not newest_first else \
+                    results + file_df.values.tolist()
                 results2 = self.remove_duplicates(
                     results2)  # remove duplicates again, to merge the results with the file
             df = pandas.DataFrame(results2)
@@ -140,10 +143,11 @@ class TwitterRetriever:
         return results
 
     def search_hashtags(self, hashtags: List[str], start_date: date = None, end_date: date = None,
-                        count: int = 15, lang: str = 'de', output_file=None) -> List[List[str]]:
+                        count: int = 15, lang: str = 'de', output_file=None, newest_first: bool=False) \
+            -> List[List[str]]:
         return self.search_text(query_strings=[h if h.startswith('#') else '#' + h for h in hashtags],
                                 start_date=start_date, end_date=end_date, count=count, lang=lang,
-                                output_file=output_file)
+                                output_file=output_file, newest_first=newest_first)
 
     def get_access_token(self) -> str:
         return self.get_config_entry('TWITTER_ACCESS_TOKEN') or TWITTER_CONFIG['TWITTER_ACCESS_TOKEN']
@@ -173,11 +177,13 @@ class TwitterRetriever:
                            access_token_secret=self.ACCESS_SECRET)
 
     def remove_duplicates(self, lst: List[List[str]]):
-        for e in lst:  # remove 'RT' from tweets (retweets)
+        for i,e in enumerate(lst):  # remove 'RT' from tweets (retweets)
             if e[1] == 'RT':
                 del e[1]
-        s = set([tuple(e) for e in lst])
-        return list([list(e) for e in s])
+            lst[i] = [s for s in e if not pandas.isna(s)]
+        unique = []
+        [unique.append(item) for item in lst if item not in unique]
+        return unique
 
     def validate_date(self, var: date):
         if var is None:
