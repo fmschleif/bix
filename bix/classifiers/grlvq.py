@@ -56,8 +56,6 @@ class GRLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         Weights for wrong classification of form (y_real,y_pred,weight)
         Per default all weights are one, meaning you only need to specify
         the weights not equal one.
-    display : boolean, optional (default=False)
-        Print information about the bfgs steps.
     random_state : int, RandomState instance or None, optional
         If int, random_state is the seed used by the random number generator;
         If RandomState instance, random_state is the random number generator;
@@ -76,25 +74,20 @@ class GRLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         Relevances
     """
     # TODO: enhance optimizing method
-    def __init__(self, prototypes_per_class=1, initial_prototypes=None,
-                 initial_relevances=None, regularization=0.0,
-                 max_iter=2500, gtol=1e-5, beta=2, C=None, display=False,
-                 random_state=None):
+    def __init__(self, prototypes_per_class: int=1, initial_prototypes=None,
+                 initial_relevances=None, regularization: float=0.0,
+                 beta: int=2, C: [float]=None, random_state: int=None):
         self.prototypes_per_class = prototypes_per_class
         self.initial_prototypes = initial_prototypes
         self.beta = beta
-        self.gtol = gtol
         self.c = C
         self.random_state = random_state
         self.initial_fit = True
         self.classes_ = []
         self.regularization = regularization
         self.initial_relevances = initial_relevances
-        # following code will be removed
-        self.display=display
-        self.max_iter=max_iter
         self.lambda_ = None
-        print('Be careful this is WIP')
+        print('GRLVQ - Be careful this is WIP')
 
     def _optfun(self, variables, training_data, label_equals_prototype):
         n_data, n_dim = training_data.shape
@@ -121,17 +114,10 @@ class GRLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         return np.vectorize(self.phi)(mu).sum(0)
 
     def _optimize(self, X, y, random_state):
-        # todo: implement it according to paper
-        ## TEST START
-        lr_relevances = 1
-        lr_prototypes = 1
-        ## TEST END
         training_data = X
         n_data, n_dim = training_data.shape
         nb_prototypes = self.c_w_.shape[0]
-        if not isinstance(self.regularization,
-                          float) or self.regularization < 0:
-            raise ValueError("regularization must be a positive float")
+
         nb_prototypes, nb_features = self.w_.shape
         if self.initial_relevances is None and self.lambda_ is None:
             self.lambda_ = np.ones([nb_features])
@@ -150,9 +136,17 @@ class GRLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         prototypes = variables.reshape(variables.size // n_dim, n_dim)[
                      :nb_prototypes]
         lambd = variables[prototypes.size:]
+        
+        ### test
+#        print(self.lambda_)
+        if(math.isnan(self.lambda_[0])): raise ValueError()
+        ####
+        
         lambd[lambd < 0] = 0.0000001  # dirty fix if all values are smaller 0
+
         dist = _squared_euclidean(lambd * training_data,
                                   lambd * prototypes)
+        print(dist) # dist is inf
         d_wrong = dist.copy()
         d_wrong[label_equals_prototype] = np.inf
         distwrong = d_wrong.min(1)
@@ -178,28 +172,24 @@ class GRLVQ(ClassifierMixin, StreamModel, BaseEstimator):
 
             dcd = mu[idxw] * distcorrect[idxw] * distcorrectpluswrong[idxw]
             dwd = mu[idxc] * distwrong[idxc] * distcorrectpluswrong[idxc]
-            if lr_relevances > 0:
-                difc = training_data[idxc] - prototypes[i]
-                difw = training_data[idxw] - prototypes[i]
-                gw -= dcd.dot(difw ** 2) - dwd.dot(difc ** 2)
-                if lr_prototypes > 0:
-                    g[i] = dcd.dot(difw) - dwd.dot(difc)
-            elif lr_prototypes > 0:
-                g[i] = dcd.dot(training_data[idxw]) - \
-                       dwd.dot(training_data[idxc]) + \
-                       (dwd.sum(0) - dcd.sum(0)) * prototypes[i]
+            
+            difc = training_data[idxc] - prototypes[i]
+            difw = training_data[idxw] - prototypes[i]
+            gw -= dcd.dot(difw ** 2) - dwd.dot(difc ** 2) # eq6
+            g[i] = dcd.dot(difw) - dwd.dot(difc)
+
         f3 = 0
         if self.regularization:
             f3 = np.diag(np.linalg.pinv(np.sqrt(np.diag(lambd))))
-        if lr_relevances > 0:
-            gw = 2 / n_data * lr_relevances * \
-                 gw - self.regularization * f3
-        if lr_prototypes > 0:
-            g[:nb_prototypes] = 1 / n_data * lr_prototypes * \
-                                g[:nb_prototypes] * lambd
+            
+        gw = 2 / n_data * \
+             gw - self.regularization * f3
+        g[:nb_prototypes] = 1 / n_data * \
+                            g[:nb_prototypes] * lambd
         g = np.append(g.ravel(), gw, axis=0)
         g = g * (1 + 0.0001 * random_state.rand(*g.shape) - 0.5)
         self.lambda_ = g[self.w_.size:]
+
         self.lambda_[self.lambda_ < 0] = 0.0000001
         self.lambda_ = self.lambda_ / self.lambda_.sum()
         update = g.reshape(g.size // nb_features, nb_features)[:nb_prototypes]
@@ -217,30 +207,8 @@ class GRLVQ(ClassifierMixin, StreamModel, BaseEstimator):
             delta = x - w[i]
             distance[i] = np.sum(delta ** 2 * lambda_, 1)
         return distance.T
-
-    def project(self, x, dims, print_variance_covered=False):
-        """Projects the data input data X using the relevance vector of trained
-        model to dimension dim
-        Parameters
-        ----------
-        x : array-like, shape = [n,n_features]
-          input data for project
-        dims : int
-          dimension to project to
-        print_variance_covered : boolean
-          flag to print the covered variance of the projection
-        Returns
-        --------
-        C : array, shape = [n,n_features]
-            Returns predicted values.
-        """
-        idx = self.lambda_.argsort()[::-1]
-        if print_variance_covered:
-            print('variance coverd by projection:',
-                  self.lambda_[idx][:dims].sum() / self.lambda_.sum() * 100)
-        return x.dot(np.diag(self.lambda_)[idx][:, :dims])
     
-    def phi(self, x):
+    def phi(self, x: [float]):
         """
         Parameters
         ----------
@@ -248,7 +216,7 @@ class GRLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         """
         return 1 / (1 + np.math.exp(-self.beta * x))
 
-    def phi_prime(self, x):
+    def phi_prime(self, x: [float]):
         """
         Parameters
         ----------
@@ -259,10 +227,11 @@ class GRLVQ(ClassifierMixin, StreamModel, BaseEstimator):
 
     def _validate_train_parms(self, train_set, train_lab, classes=None):
         if not isinstance(self.beta, int):
-            raise ValueError("beta must a an integer")
+            raise ValueError("beta must an integer")
+        if not isinstance(self.regularization,
+                          float) or self.regularization < 0:
+            raise ValueError("regularization must be a positive float")
         random_state = validation.check_random_state(self.random_state)
-        if not isinstance(self.gtol, float) or self.gtol <= 0:
-            raise ValueError("gtol must be a positive float")
         train_set, train_lab = validation.check_X_y(train_set, train_lab)
         
         if(self.initial_fit):
@@ -302,24 +271,22 @@ class GRLVQ(ClassifierMixin, StreamModel, BaseEstimator):
                 self.w_ = np.empty([np.sum(nb_ppc), nb_features], dtype=np.double)
                 self.c_w_ = np.empty([nb_ppc.sum()], dtype=self.classes_.dtype)
             pos = 0
-            for actClass in range(len(self.classes_)):
-                nb_prot = nb_ppc[actClass] # nb_ppc: prototypes per class
-                if(self.protos_initialized[actClass] == 0 and actClass in unique_labels(train_lab)):
+            for actClassIdx in range(len(self.classes_)):
+                actClass = self.classes_[actClassIdx]
+                nb_prot = nb_ppc[actClassIdx] # nb_ppc: prototypes per class
+                if(self.protos_initialized[actClassIdx] == 0 and actClass in unique_labels(train_lab)):
                     mean = np.mean(
-                        train_set[train_lab == self.classes_[actClass], :], 0)
+                        train_set[train_lab == actClass, :], 0)
                     self.w_[pos:pos + nb_prot] = mean + (
                             random_state.rand(nb_prot, nb_features) * 2 - 1)
                     if math.isnan(self.w_[pos, 0]):
-                        print('null: ', actClass)
-                        self.protos_initialized[actClass] = 0
+                        print('Prototype is NaN: ', actClass)
+                        self.protos_initialized[actClassIdx] = 0
                     else:
-                        self.protos_initialized[actClass] = 1
-    
-                    self.c_w_[pos:pos + nb_prot] = self.classes_[actClass]
-                    pos += nb_prot
-                elif(self.protos_initialized[actClass] == 0):
-                    self.w_[pos:pos + nb_prot] = 0
-                    pos += nb_prot
+                        self.protos_initialized[actClassIdx] = 1
+
+                    self.c_w_[pos:pos + nb_prot] = actClass
+                pos += nb_prot
         else:
             x = validation.check_array(self.initial_prototypes)
             self.w_ = x[:, :-1]
@@ -437,7 +404,7 @@ class GRLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         --------
         self
         """
-        if unique_labels(y) in self.classes_ or self.initial_fit == True:
+        if set(unique_labels(y)).issubset(set(self.classes_)) or self.initial_fit == True:
             X, y, random_state = self._validate_train_parms(X, y, classes=classes)
         else:
             raise ValueError('Class {} was not learned - please declare all \

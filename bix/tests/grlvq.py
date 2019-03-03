@@ -12,11 +12,8 @@ from skmultiflow.data.sea_generator import SEAGenerator
 from skmultiflow.evaluation.evaluate_prequential import EvaluatePrequential
 import numpy as np
 
-class TestGRSLVQ(unittest.TestCase):
+class TestGRLVQ(unittest.TestCase):
     # TODO: implement + adjust tests as soon as method works fine
-    
-    def test_example(self):
-        self.assertTrue(True)
         
     def test_correct_init(self):
         GRLVQ(prototypes_per_class=2, regularization=0.0,
@@ -26,7 +23,7 @@ class TestGRSLVQ(unittest.TestCase):
         stream = SEAGenerator(random_state=42)
         stream.prepare_for_use()
 
-        clf = GRLVQ(prototypes_per_class=2, regularization=0.0,
+        clf = GRLVQ(prototypes_per_class=2, regularization=5.0,
               beta=2, C=None)
 
         evaluator = EvaluatePrequential(pretrain_size=1, show_plot=False, max_samples=20000,

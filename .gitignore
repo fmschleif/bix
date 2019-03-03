@@ -146,3 +146,8 @@ venv.bak/
 # pycharm project settings
 .idea/
 bix/data/twitter/config.py
+datasets/covtype_new.csv
+
+bix/tests/fivetwo/*
+bix/transfer_learning/prototypes.py
+bix/datasets/domain_adaptation/images/*

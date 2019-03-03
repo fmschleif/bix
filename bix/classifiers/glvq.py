@@ -65,16 +65,26 @@ class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
     """
 
     def __init__(self, prototypes_per_class=1, initial_prototypes=None,
-                 gtol=1e-5, beta=2, C=None, random_state=None):
+                 gtol=1e-5, beta=2, C=None, random_state=None,gradient_descent='SGD',decay_rate=0.9):
         
         self.prototypes_per_class = prototypes_per_class
         self.initial_prototypes = initial_prototypes
         self.beta = beta
+        self.epsilon = 1e-8
         self.gtol = gtol
         self.c = C
         self.random_state = random_state
         self.initial_fit = True
         self.classes_ = []
+        self.decay_rate = decay_rate
+        allowed_gradient_descent = ['SGD', 'Adadelta']
+        if gradient_descent in allowed_gradient_descent:
+            self.gradient_descent = gradient_descent
+        else:
+            raise ValueError('{} is not a valid parameter for '
+                             'gradient_descent, please use one '
+                             'of the following parameters:\n {}'
+                             .format(gradient_descent, allowed_gradient_descent))
 
     def phi_prime(self, x):
         """
@@ -82,8 +92,8 @@ class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         ----------
         x : input value
         """
-        return self.beta * np.math.exp(self.beta * x) / (
-                1 + np.math.exp(self.beta * x)) ** 2
+        return self.beta * np.math.exp(-self.beta * x) / (
+                1 + np.math.exp(-self.beta * x)) ** 2
 
     def _validate_train_parms(self, train_set, train_lab, classes=None):
         if not isinstance(self.beta, int):
@@ -130,21 +140,22 @@ class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
                 self.w_ = np.empty([np.sum(nb_ppc), nb_features], dtype=np.double)
                 self.c_w_ = np.empty([nb_ppc.sum()], dtype=self.classes_.dtype)
             pos = 0
-            for actClass in range(len(self.classes_)):
-                nb_prot = nb_ppc[actClass] # nb_ppc: prototypes per class
-                if(self.protos_initialized[actClass] == 0 and actClass in unique_labels(train_lab)):
+            for actClassIdx in range(len(self.classes_)):
+                actClass = self.classes_[actClassIdx]
+                nb_prot = nb_ppc[actClassIdx] # nb_ppc: prototypes per class
+                if(self.protos_initialized[actClassIdx] == 0 and actClass in unique_labels(train_lab)):
                     mean = np.mean(
-                        train_set[train_lab == self.classes_[actClass], :], 0)
+                        train_set[train_lab == actClass, :], 0)
                     self.w_[pos:pos + nb_prot] = mean + (
                             random_state.rand(nb_prot, nb_features) * 2 - 1)
                     if math.isnan(self.w_[pos, 0]):
-                        print('null: ', actClass)
-                        self.protos_initialized[actClass] = 0
+                        print('Prototype is NaN: ', actClass)
+                        self.protos_initialized[actClassIdx] = 0
                     else:
-                        self.protos_initialized[actClass] = 1
-    
-                    self.c_w_[pos:pos + nb_prot] = self.classes_[actClass]
-                    pos += nb_prot
+                        self.protos_initialized[actClassIdx] = 1
+
+                    self.c_w_[pos:pos + nb_prot] = actClass
+                pos += nb_prot
         else:
             x = validation.check_array(self.initial_prototypes)
             self.w_ = x[:, :-1]
@@ -161,6 +172,8 @@ class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
                     "classes={}\n"
                     "prototype labels={}\n".format(self.classes_, self.c_w_))
         if self.initial_fit:
+            self.squared_mean_gradient = np.zeros_like(self.w_)
+            self.squared_mean_step = np.zeros_like(self.w_)
             self.initial_fit = False
             
         ret = train_set, train_lab, random_state
@@ -205,6 +218,7 @@ class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         g = np.zeros(prototypes.shape)
         distcorrectpluswrong = 4 / distcorrectpluswrong ** 2
 
+        
         for i in range(nb_prototypes):
             idxc = i == pidxcorrect
             idxw = i == pidxwrong
@@ -215,9 +229,25 @@ class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
                 training_data[idxc]) + (dwd.sum(0) -
                                         dcd.sum(0)) * prototypes[i]
         g[:nb_prototypes] = 1 / n_data * g[:nb_prototypes]
-        g = g * (1 + 0.0001 * random_state.rand(*g.shape) - 0.5)
-    
-        self.w_ -= g.ravel().reshape(self.w_.shape)
+        g = g * (1 + 0.0001 * (random_state.rand(*g.shape) - 0.5))     
+        
+        if self.gradient_descent == "SGD":
+            self.w_ -= g.ravel().reshape(self.w_.shape)
+        else:
+            # Accumulate gradient
+            self.squared_mean_gradient= self.decay_rate * self.squared_mean_gradient+ \
+                        (1 - self.decay_rate) * g ** 2
+            
+            # Compute update/step
+            step = ((self.squared_mean_step + self.epsilon) / \
+                        (self.squared_mean_gradient + self.epsilon)) ** 0.5 * g
+                        
+            # Accumulate updates
+            self.squared_mean_step = self.decay_rate * self.squared_mean_step + \
+            (1 - self.decay_rate) * step ** 2    
+            # step = np.array([abs(s)*1 if y==self.c_w_[idx] else abs(s)*-1 for idx,s in enumerate(step)])
+            self.w_ -= step.ravel().reshape(self.w_.shape)
+
 
     def _compute_distance(self, x, w=None):
         if w is None:
@@ -310,7 +340,7 @@ class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
         --------
         self
         """
-        if unique_labels(y) in self.classes_ or self.initial_fit == True:
+        if set(unique_labels(y)).issubset(set(self.classes_)) or self.initial_fit == True:
             X, y, random_state = self._validate_train_parms(X, y, classes=classes)
         else:
             raise ValueError('Class {} was not learned - please declare all \
