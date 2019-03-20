@@ -2,13 +2,19 @@
 @author: Jonas Burger <post@jonas-burger.de>
 """
 import os
+from collections import defaultdict
+from functools import reduce
 
+import keras as keras
 import pandas
 import twitter
 
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from datetime import *
+
+from keras_preprocessing.text import Tokenizer
+from numpy.core.multiarray import ndarray
 from twitter import Status, TwitterError
 from bix.data.twitter.config import TWITTER_CONFIG
 
@@ -190,3 +196,44 @@ class TwitterRetriever:
             return
         if var < date.today() - timedelta(days=7):
             raise Exception('date "%s" lies to far in the past (7 days)')
+
+    @classmethod
+    def split_result_list_by_label(cls, data: List[List[str]]) -> Dict[str, List[List[str]]]:
+        # dont, only after
+        label_dict = defaultdict(list)
+        for e in data:
+            label_dict[e[0]].append(e)
+        return label_dict
+
+
+    @classmethod
+    def tokenize_and_vectorize(cls, data: List[List[str]]) -> (ndarray, List[str]):
+        transformed_data:List[str] = [' '.join([ee for ee in e[1:] if not pandas.isna(ee)]) for e in data]
+
+        # add spaces after sc
+        #tfidf
+        # add vectorize function
+        # numpy array anzahl
+        # split label vector
+        #
+        t = Tokenizer(filters='!"„“…»«#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n')
+
+        t.fit_on_texts(transformed_data)
+
+        #print('wordcounts')
+        #print(t.word_counts)
+        #print('document_count')
+        #print(t.document_count)
+        #print('wordindex')
+        #print(t.word_index)
+        #print('word_docs')
+        #print(t.word_docs)
+
+        print('--------- ' + data[0][0] + ' ---------')
+        for e, n in sorted(t.word_counts.items(), key=lambda x: x[1]):
+            print('\t' + str(e) + ': ' + str(n))
+
+        mat = t.texts_to_matrix(transformed_data, mode='tfidf')
+        print('dims: ' + str(mat.shape))
+
+        return mat, transformed_data
