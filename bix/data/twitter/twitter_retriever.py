@@ -2,6 +2,8 @@
 @author: Jonas Burger <post@jonas-burger.de>
 """
 import os
+import re
+import string
 from collections import defaultdict
 from functools import reduce
 
@@ -13,10 +15,17 @@ from pathlib import Path
 from typing import List, Tuple, Dict
 from datetime import *
 
+from keras import Sequential
+from keras.layers import Embedding, Flatten, Dense
+from keras_preprocessing.sequence import pad_sequences
 from keras_preprocessing.text import Tokenizer
+from nltk import SnowballStemmer
+from nltk.corpus import stopwords
+from numpy import asarray, zeros
 from numpy.core.multiarray import ndarray
 from twitter import Status, TwitterError
 from bix.data.twitter.config import TWITTER_CONFIG
+from nltk.stem import PorterStemmer
 
 
 class TwitterRetriever:
@@ -205,35 +214,166 @@ class TwitterRetriever:
             label_dict[e[0]].append(e)
         return label_dict
 
+    @classmethod
+    def clean_text(cls, data: List[List[str]], lang='english') -> List[str]:
+        """
+        performes stemming and other "cleanup"
+        :param data:
+        :param lang:
+        :return:
+        """
+
+        transformed_data: List[str] = [' '.join([ee for ee in e[1:] if not pandas.isna(ee)]) for e in data]
+        cleaned_text = []
+        stops = set(stopwords.words(lang))
+        for text in transformed_data:
+
+            text = re.sub(r'https?:\/\/[^\s]*\s', '', text)
+
+            ## Remove puncuation
+            text = text.translate(string.punctuation)
+
+            ## Convert words to lower case and split them
+            text = text.lower().split()
+
+            ## Remove stop words[^\s][^\s]
+            text = [w for w in text if not w in stops and len(w) >= 3]
+
+            text = " ".join(text)
+
+            # Clean the text
+            text = re.sub(r"[^A-Za-z0-9^,!.\/'+-=]", " ", text)
+            text = re.sub(r"what's", "what is ", text)
+            text = re.sub(r"\'s", " ", text)
+            text = re.sub(r"\'ve", " have ", text)
+            text = re.sub(r"n't", " not ", text)
+            text = re.sub(r"i'm", "i am ", text)
+            text = re.sub(r"\'re", " are ", text)
+            text = re.sub(r"\'d", " would ", text)
+            text = re.sub(r"\'ll", " will ", text)
+            text = re.sub(r",", " ", text)
+            text = re.sub(r"\.", " ", text)
+            text = re.sub(r"!", " ! ", text)
+            text = re.sub(r"\/", " ", text)
+            text = re.sub(r"\^", " ^ ", text)
+            text = re.sub(r"\+", " + ", text)
+            text = re.sub(r"\-", " - ", text)
+            text = re.sub(r"\=", " = ", text)
+            text = re.sub(r"'", " ", text)
+            text = re.sub(r"(\d+)(k)", r"\g<1>000", text)
+            text = re.sub(r":", " : ", text)
+            text = re.sub(r" e g ", " eg ", text)
+            text = re.sub(r" b g ", " bg ", text)
+            text = re.sub(r" u s ", " american ", text)
+            text = re.sub(r"\0s", "0", text)
+            text = re.sub(r" 9 11 ", "911", text)
+            text = re.sub(r"e - mail", "email", text)
+            text = re.sub(r"j k", "jk", text)
+            text = re.sub(r"\s{2,}", " ", text)
+
+            text = text.split()
+            stemmer = SnowballStemmer(lang)
+            stemmed_words = [stemmer.stem(word) for word in text]
+            text = " ".join(stemmed_words)
+            cleaned_text.append(text)
+
+        return cleaned_text
 
     @classmethod
-    def tokenize_and_vectorize(cls, data: List[List[str]]) -> (ndarray, List[str]):
-        transformed_data:List[str] = [' '.join([ee for ee in e[1:] if not pandas.isna(ee)]) for e in data]
+    def tokenize(cls, data: List[str]) -> Tokenizer:
+        #transformed_data:List[str] = [' '.join([ee for ee in e[1:] if not pandas.isna(ee)]) for e in data]
+        transformed_data = data
 
-        # add spaces after sc
-        #tfidf
-        # add vectorize function
-        # numpy array anzahl
-        # split label vector
-        #
         t = Tokenizer(filters='!"„“…»«#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n')
 
         t.fit_on_texts(transformed_data)
 
-        #print('wordcounts')
-        #print(t.word_counts)
-        #print('document_count')
-        #print(t.document_count)
-        #print('wordindex')
-        #print(t.word_index)
-        #print('word_docs')
-        #print(t.word_docs)
+        print('wordcounts')
+        print(t.word_counts)
+        print('document_count')
+        print(t.document_count)
+        print('wordindex')
+        print(t.word_index)
+        print('word_docs')
+        print(t.word_docs)
 
         print('--------- ' + data[0][0] + ' ---------')
         for e, n in sorted(t.word_counts.items(), key=lambda x: x[1]):
             print('\t' + str(e) + ': ' + str(n))
+        return t
 
-        mat = t.texts_to_matrix(transformed_data, mode='tfidf')
+    @classmethod
+    def vectorize(cls, data: List[str], labels: List[str], t: Tokenizer) -> (ndarray, List[str]):
+
+        mat = t.texts_to_matrix(data, mode='tfidf')
         print('dims: ' + str(mat.shape))
 
-        return mat, transformed_data
+        return mat, data
+
+    @classmethod
+    def perform_word_embedding(cls, data: List[str], labels: List[str], t: Tokenizer) -> (Sequential, List[str]):
+        vocab_size = len(t.word_index) + 1
+        embedding_vector_size = 200
+        max_tweet_word_count = max([len(e.split()) for e in data])
+
+        labels_int, _ = cls.encode_labels(labels)
+
+        # integer encode the documents
+        encoded_docs = t.texts_to_sequences(data)
+        print(encoded_docs)
+        # pad documents to a max length of [embedding_vector_size] words
+        padded_docs = pad_sequences(encoded_docs, maxlen=max_tweet_word_count, padding='post')
+        print(padded_docs)
+
+        # load the whole embedding into memory
+        embeddings_index = dict()
+        f = open('glove.twitter.27B.200d.txt')
+        for line in f:
+            values = line.split()
+            word = values[0]
+            coefs = asarray(values[1:], dtype='float32')
+            embeddings_index[word] = coefs
+        f.close()
+        print('Loaded %s word vectors.' % len(embeddings_index))
+
+        # create a weight matrix for words in training docs
+        embedding_matrix = zeros((vocab_size, embedding_vector_size))
+        print(str(embedding_matrix.shape))
+        for word, i in t.word_index.items():
+            embedding_vector = embeddings_index.get(word)
+            if embedding_vector is not None:
+                embedding_matrix[i] = embedding_vector
+
+        # define model
+        model = Sequential()
+        e = Embedding(vocab_size, embedding_vector_size, weights=[embedding_matrix],
+                      input_length=max_tweet_word_count, trainable=False)
+        model.add(e)
+        model.add(Flatten())
+        model.add(Dense(1, activation='sigmoid'))
+        # compile the model
+        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
+        # summarize the model
+        print(model.summary())
+        # fit the model
+        model.fit(padded_docs, labels_int, epochs=5, verbose=0)
+        # evaluate the model
+        loss, accuracy = model.evaluate(padded_docs, labels_int, verbose=0)
+        print('Accuracy: %f' % (accuracy * 100))
+
+        return model, data
+
+    @classmethod
+    def encode_labels(cls, labels: List[str]) -> (List[int], Dict[int, str]):
+        unique_labels = TwitterRetriever.remove_duplicates_generic(labels)
+        encoded_labels = [unique_labels.index(e) for e in labels]
+        encode_dict = {v: k for v, k in enumerate(unique_labels)}
+        return encoded_labels, encode_dict
+
+
+
+    @classmethod
+    def remove_duplicates_generic(cls, seq: List) -> List:
+        seen = set()
+        seen_add = seen.add
+        return [x for x in seq if not (x in seen or seen_add(x))]

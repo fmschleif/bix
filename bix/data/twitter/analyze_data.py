@@ -1,3 +1,5 @@
+from typing import List
+
 import pandas
 
 from bix.data.twitter.twitter_retriever import TwitterRetriever
@@ -5,11 +7,33 @@ from bix.data.twitter.twitter_retriever import TwitterRetriever
 file_to_analyze = 'twitter.csv'
 
 if __name__ == '__main__':
+    mode = 'embedding_mat' # or 'default'
+    lang = 'english' # or 'german'
+
+    # load from csv
     file_df = pandas.read_csv(file_to_analyze, header=None)
     data = file_df.values.tolist()
-    dic = TwitterRetriever.split_result_list_by_label(data)
-    for k,v in dic.items():
-        mat, doc_list = TwitterRetriever.tokenize_and_vectorize(v)
-        # continue here
-        print(mat)
+
+    # stemming and some other cleanup
+    texts: List[str] = TwitterRetriever.clean_text(data, lang)
+    labels: List[str] = [e[0] for e in data]
+
+    # tokenize
+    tok = TwitterRetriever.tokenize(texts)
+
+    # vectorize
+    mat = None
+    doc_list = None
+    if mode == 'embedding_mat':
+        mat, doc_list = TwitterRetriever.perform_word_embedding(texts, labels, tok)
+    else:
+        mat, doc_list = TwitterRetriever.vectorize(texts, labels, tok)
+
+    print(str(mat))
+    print('finished')
+
+    #for k,v in dic.items():
+    #    mat, doc_list = TwitterRetriever.tokenize_and_vectorize(v)
+    #    # continue here
+    #    print(mat)
 
