@@ -1,13 +1,13 @@
-from abc import ABCMeta, abstractmethod
 from skmultiflow.drift_detection.base_drift_detector import BaseDriftDetector
 import numpy as np
-from skmultiflow.core.base_object import BaseObject       
 from scipy import stats
-from scipy.stats import f_oneway
-class KSWIN(BaseDriftDetector):
-    def __init__(self,alpha=0.05,data=None):
 
-        self.w_size = 100
+class KSWIN(BaseDriftDetector):
+    """KSWIN - Concept Drift Detector
+    """
+    def __init__(self, alpha=0.05, w_size=100, data=None):
+
+        self.w_size = w_size
         self.stat_size = 30 
         self.alpha = alpha
         self.change_detected = False;
