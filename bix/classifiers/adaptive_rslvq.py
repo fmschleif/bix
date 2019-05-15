@@ -297,14 +297,7 @@ class ARSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
 #            raise ValueError("X has wrong number of features\n"
 #                             "found=%d\n"
 #                             "expected=%d" % (self.w_.shape[1], x.shape[1]))
-
-        def foo(e):
-            fun = np.vectorize(lambda w: self._costf(e, w),
-                               signature='(n)->()')
-            pred = fun(self.w_).argmax()
-            return self.c_w_[pred]
-
-        return np.vectorize(foo, signature='(n)->()')(x)
+        return np.array([self.c_w_[np.array([self._costf(xi,p) for p in self.w_]).argmax()] for xi in x])
 
     def posterior(self, y, x):
         """

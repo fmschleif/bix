@@ -5,16 +5,16 @@ from scipy import stats
 class KSWIN(BaseDriftDetector):
     """KSWIN - Concept Drift Detector
     """
-    def __init__(self, alpha=0.05, w_size=100, data=None):
+    def __init__(self, alpha=0.05, w_size=100, stat_size=30, data=None):
 
         self.w_size = w_size
-        self.stat_size = 30 
+        self.stat_size = stat_size 
         self.alpha = alpha
         self.change_detected = False;
         self.p_value = 0
         self.n = 0
         if self.alpha < 0 or self.alpha > 1:
-            raise ValueError("Alpha must in between 0 and 1")
+            raise ValueError("Alpha must be between 0 and 1")
         if type(data) != list or type(data) == None:
             self.window = []
         else:
@@ -37,6 +37,7 @@ class KSWIN(BaseDriftDetector):
                 self.change_detected = False
         else: 
             self.change_detected = False
+            
         self.window.insert(currentLength,value)      
         pass
     
