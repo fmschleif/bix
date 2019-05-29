@@ -11,7 +11,6 @@ from sklearn.utils.multiclass import unique_labels
 from sklearn.utils.validation import check_is_fitted
 from scipy.spatial.distance import cdist
 from bix.detectors.kswin import KSWIN
-from skmultiflow.core.base import StreamModel
 from sklearn import preprocessing
 from skmultiflow.drift_detection.adwin import ADWIN
 #!sr/bin/env python3
@@ -26,7 +25,7 @@ https://github.com/mrwojo/geometric_median/blob/master/geometric_median/geometri
 https://github.com/MrNuggelz/sklearn-lvq)
 """
 
-class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
+class RRSLVQ(ClassifierMixin, BaseEstimator):
     """Reactive Robust Soft Learning Vector Quantization
     Parameters
     ----------

@@ -1,9 +1,10 @@
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed May 29 14:14:29 2019
+Created on Wed May 29 15:35:11 2019
 
-@author: Moritz Heusinger <moritz.heusinger@gmail.com>
+@author: moritz
 """
 
 from __future__ import division
@@ -19,22 +20,10 @@ from sklearn.utils.multiclass import unique_labels
 from sklearn.utils.validation import check_is_fitted
 from scipy.spatial.distance import cdist
 from bix.detectors.kswin import KSWIN
-from skmultiflow.core import BaseSKMObject
 from sklearn import preprocessing
 from skmultiflow.drift_detection.adwin import ADWIN
-#!sr/bin/env python3
-#-*- coding: utf-8 -*-
-"""
-Created on Fri Jun 22 09:35:11 2018
 
-@author: christoph
-
-Sources 
-https://github.com/mrwojo/geometric_median/blob/master/geometric_median/geometric_median.py
-https://github.com/MrNuggelz/sklearn-lvq)
-"""
-
-class RRSLVQ(ClassifierMixin, BaseSKMObject, BaseEstimator):
+class ARRSLVQ(ClassifierMixin, BaseEstimator):
     """Reactive Robust Soft Learning Vector Quantization
     Parameters
     ----------
@@ -56,8 +45,7 @@ class RRSLVQ(ClassifierMixin, BaseSKMObject, BaseEstimator):
         None means no concept drift detection
         If KS, use of Kolmogorov Smirnov test
         IF DIST, monitoring class distances to detect outlier.
-    
-
+    gamma : float, Decay Rate for Adadelta
 
     Attributes
     ----------
@@ -73,7 +61,8 @@ class RRSLVQ(ClassifierMixin, BaseSKMObject, BaseEstimator):
     """
 
     def __init__(self, prototypes_per_class=1, initial_prototypes=None,
-                 sigma=1.0, random_state=112, drift_detector = "KS", confidence=0.05, replace : bool = True):
+                 sigma=1.0, random_state=112, drift_detector = "KS", confidence=0.05, 
+                 gamma:float=0.9, replace : bool = True):
         self.sigma = sigma
         
         self.random_state = random_state
@@ -90,6 +79,9 @@ class RRSLVQ(ClassifierMixin, BaseSKMObject, BaseEstimator):
         self.drift_detected  = False
         self.replace = replace
         self.init_drift_detection = True
+        
+        #### Adadelta ####
+        self.decay_rate = gamma
 
         if self.prototypes_per_class < 1:
             raise ValueError("Number of prototypes per class must be greater or equal to 1")
@@ -286,8 +278,6 @@ class RRSLVQ(ClassifierMixin, BaseSKMObject, BaseEstimator):
         
         # initialize prototypes
         if self.initial_prototypes is None:
-            #self.w_ = np.repeat(np.array([self.geometric_median(train_set[train_lab == l],"minimize") for l in self.classes_]),nb_ppc,axis=0)
-            #self.c_w_ = np.repeat(self.classes_,nb_ppc)
             if self.initial_fit:
                 self.w_ = np.empty([np.sum(nb_ppc), nb_features], dtype=np.double)
                 self.c_w_ = np.empty([nb_ppc.sum()], dtype=self.classes_.dtype)
@@ -308,7 +298,6 @@ class RRSLVQ(ClassifierMixin, BaseSKMObject, BaseEstimator):
 
                     self.c_w_[pos:pos + nb_prot] = actClass
                 pos += nb_prot
-            
         else:
             x = validation.check_array(self.initial_prototypes)
             self.w_ = x[:, :-1]
@@ -325,6 +314,9 @@ class RRSLVQ(ClassifierMixin, BaseSKMObject, BaseEstimator):
                     "classes={}\n"
                     "prototype labels={}\n".format(self.classes_, self.c_w_))
         if self.initial_fit:
+            # Next two lines are Init for Adadelta/RMSprop
+            self.squared_mean_gradient = np.zeros_like(self.w_)
+            self.squared_mean_step = np.zeros_like(self.w_)
             self.initial_fit = False
 
         return train_set, train_lab, random_state
