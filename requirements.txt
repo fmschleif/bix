@@ -1,3 +1,4 @@
 scipy
 numpy
 python-twitter
+nltk

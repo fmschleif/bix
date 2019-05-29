@@ -7,7 +7,7 @@ from bix.data.twitter.twitter_retriever import TwitterRetriever
 A small script that tries to gather as much tweets as possible for the given hashtags every 24h and saves them in the
 output file (merges results)
 """
-hashtags = ['#brexit']
+hashtags = ['#brexit',  '#notredame']
 tweets_to_pull = 20000 // len(hashtags)
 output_file = 'twitter.csv'
 

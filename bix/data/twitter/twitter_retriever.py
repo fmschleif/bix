@@ -228,7 +228,7 @@ class TwitterRetriever:
         stops = set(stopwords.words(lang))
         for text in transformed_data:
 
-            text = re.sub(r'https?:\/\/[^\s]*\s', '', text)
+            text = re.sub(r'https?:\/\/[^\s]*', '', text)
 
             ## Remove puncuation
             text = text.translate(string.punctuation)
@@ -350,9 +350,9 @@ class TwitterRetriever:
                       input_length=max_tweet_word_count, trainable=False)
         model.add(e)
         model.add(Flatten())
-        model.add(Dense(1, activation='sigmoid'))
+        model.add(Dense(1, activation='sigmoid')) # verstehen und vieleicht für ba relevant
         # compile the model
-        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
+        model.compile(optimizer='adam', loss='mean_squared_error', metrics=['acc'])
         # summarize the model
         print(model.summary())
         # fit the model
