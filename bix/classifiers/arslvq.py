@@ -20,7 +20,6 @@ from sklearn.utils.multiclass import unique_labels
 from sklearn.utils.validation import check_is_fitted
 from scipy.spatial.distance import cdist
 from bix.detectors.kswin import KSWIN
-from sklearn import preprocessing
 from skmultiflow.drift_detection.adwin import ADWIN
 
 class ARSLVQ(ClassifierMixin, BaseEstimator):
@@ -260,9 +259,11 @@ class ARSLVQ(ClassifierMixin, BaseEstimator):
         nb_samples, nb_features = train_set.shape  # nb_samples unused
 
         # set prototypes per class
-        if isinstance(self.prototypes_per_class, int):
+        if isinstance(self.prototypes_per_class, int) or isinstance(self.prototypes_per_class, np.int64):
             if self.prototypes_per_class < 0 or not isinstance(
-                    self.prototypes_per_class, int):
+                    self.prototypes_per_class, int) and not isinstance(
+                    self.prototypes_per_class, np.int64):
+                # isinstance(self.prototypes_per_class, np.int64) fixes the singleton array array (1) is ... bug of gridsearch parallel
                 raise ValueError("prototypes_per_class must be a positive int")
             # nb_ppc = number of protos per class
             nb_ppc = np.ones([nb_classes],

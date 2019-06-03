@@ -12,11 +12,10 @@ import math
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils.multiclass import unique_labels
-from skmultiflow.core.base import StreamModel
 from sklearn.utils import validation
 from sklearn.utils.validation import check_is_fitted
 
-class RSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
+class RSLVQ(ClassifierMixin, BaseEstimator):
     """Minibatch Robust Soft Learning Vector Quantization
     Parameters
     ----------
