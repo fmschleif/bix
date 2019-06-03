@@ -431,7 +431,7 @@ class ARSLVQ(ClassifierMixin, BaseEstimator):
         return self.drift_detected
    
     def cd_handling(self, X,Y):
-        print('cd handling')
+#        print('cd handling')
         if self.replace:
             labels = np.concatenate([np.repeat(l,self.prototypes_per_class) for l in self.classes_])        
             # new_prototypes = np.repeat(np.array([self.geometric_median(np.array([detector.window[-30:] for detector in self.cdd]).T)]),len(labels),axis=0)
