@@ -22,7 +22,7 @@ def test_parameter_grid_search_arslvq():
         "window_size": np.array([100, 200, 300, 800])}
     clf = ARSLVQ()
     gs = GridSearch(clf=clf, grid=grid, max_samples=50000)
-    gs.streams = gs.init_real_world() + gs.init_standard_streams()  + gs.init_reoccuring_streams()
+    gs.streams = gs.init_real_world() + gs.init_standard_streams()  + gs.init_reoccuring_standard_streams()
     gs.search()
     gs.save_summary()
     
