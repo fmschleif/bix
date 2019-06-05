@@ -14,7 +14,7 @@ twint_analyse = True # analyse file scraped with twint instead
 twint_dirs = ['brexit', 'peoplesvote']
 
 if __name__ == '__main__':
-    mode = 'skip_gram' # or 'default' or 'embedding_mat_glove', 'embedding_mat', 'skip_gram'
+    mode = 'embedding_mat' # or 'default' or 'embedding_mat_glove', 'embedding_mat', 'skip_gram'
     lang = 'english' # or 'german'
 
     data = []
@@ -60,7 +60,8 @@ if __name__ == '__main__':
     vocab_size = len(tok.word_index) + 1
 
     model = Sequential()
-    model.add(Embedding(vocab_size, 8, input_length=max_tweet_word_count, weights=model_input.embedding_weights))
+    model.add(Embedding(vocab_size, model_input.embedding_weights[0].shape[1], input_length=max_tweet_word_count,
+                        weights=model_input.embedding_weights))
     model.add(Flatten())
 
     model.add(Dense(1, activation='sigmoid'))
