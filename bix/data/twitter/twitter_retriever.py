@@ -314,7 +314,7 @@ class TwitterRetriever:
         return mat, data
 
     @classmethod
-    def perform_word_embedding_glove(cls, data: List[str], labels: List[str], t: Tokenizer) -> (Sequential, List[str]):
+    def prepare_word_embedding_glove(cls, data: List[str], labels: List[str], t: Tokenizer) -> ModelInput:
         vocab_size = len(t.word_index) + 1
         embedding_vector_size = 200
         max_tweet_word_count = max([len(e.split()) for e in data])
@@ -364,10 +364,13 @@ class TwitterRetriever:
         loss, accuracy = model.evaluate(padded_docs, labels_int, verbose=0)
         print('Accuracy: %f' % (accuracy * 100))
 
-        return model, data
+        weights = model.layers[0].get_weights()
+        print(f"num: {len(weights)}, dim: {weights[0].shape}")
+
+        return ModelInput(x=padded_docs, y=labels_int, embedding_weights=weights, mode='embedding')
 
     @classmethod
-    def perform_word_embedding(cls, data: List[str], labels: List[str], t: Tokenizer) -> ModelInput:
+    def prepare_word_embedding(cls, data: List[str], labels: List[str], t: Tokenizer) -> ModelInput:
         vocab_size = len(t.word_index) + 1
         embedding_vector_size = 200 # can be tweaked
         max_tweet_word_count = max([len(e.split()) for e in data])

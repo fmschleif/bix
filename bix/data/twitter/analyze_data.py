@@ -45,17 +45,16 @@ if __name__ == '__main__':
     tok = TwitterRetriever.tokenize(texts)
 
     # vectorize
-    mat = None
-    doc_list = None
-    model_input: ModelInput = None
+    model_input = None
     if mode == 'embedding_mat_glove':
-        mat, doc_list = TwitterRetriever.perform_word_embedding_glove(texts, labels, tok)
+        model_input = TwitterRetriever.prepare_word_embedding_glove(texts, labels, tok)
     elif mode == 'embedding_mat':
-        model_input = TwitterRetriever.perform_word_embedding(texts, labels, tok)
+        model_input = TwitterRetriever.prepare_word_embedding(texts, labels, tok)
     elif mode == 'skip_gram':
         model_input = TwitterRetriever.prepare_skip_gram(texts, labels, tok)
     else:
-        mat, doc_list = TwitterRetriever.vectorize(texts, labels, tok)
+        pass
+        #mat, doc_list = TwitterRetriever.vectorize(texts, labels, tok)
 
     max_tweet_word_count = max([len(e.split()) for e in texts])
     vocab_size = len(tok.word_index) + 1
@@ -75,7 +74,6 @@ if __name__ == '__main__':
     loss, accuracy = model.evaluate(model_input.x, model_input.y, verbose=0)
     print('Accuracy: %f' % (accuracy * 100))
 
-    print(str(mat))
     print('finished')
 
     #for k,v in dic.items():
