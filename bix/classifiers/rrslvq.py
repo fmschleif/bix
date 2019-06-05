@@ -11,7 +11,6 @@ from sklearn.utils.multiclass import unique_labels
 from sklearn.utils.validation import check_is_fitted
 from scipy.spatial.distance import cdist
 from bix.detectors.kswin import KSWIN
-from skmultiflow.core.base import StreamModel
 from sklearn import preprocessing
 from skmultiflow.drift_detection.adwin import ADWIN
 #!sr/bin/env python3
@@ -26,10 +25,7 @@ https://github.com/mrwojo/geometric_median/blob/master/geometric_median/geometri
 https://github.com/MrNuggelz/sklearn-lvq)
 """
 
-
-
-
-class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
+class RRSLVQ(ClassifierMixin, BaseEstimator):
     """Reactive Robust Soft Learning Vector Quantization
     Parameters
     ----------
@@ -68,7 +64,7 @@ class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
     """
 
     def __init__(self, prototypes_per_class=1, initial_prototypes=None,
-                 sigma=1.0, random_state=112,drift_detector = "KS",confidence=0.05,replace : bool = True):
+                 sigma=1.0, random_state=112, drift_detector = "KS", confidence=0.05, replace : bool = True):
         self.sigma = sigma
         
         self.random_state = random_state
@@ -90,7 +86,7 @@ class RRSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
             raise ValueError("Number of prototypes per class must be greater or equal to 1")
 
         if self.drift_detector != "KS" and self.drift_detector != "DIST" and self.drift_detector != "ADWIN":
-            raise ValueError("Drift detector must be either KS or DIST!")
+            raise ValueError("Drift detector must be either KS, ADWIN or DIST!")
         
         if self.confidence <= 0 or self.confidence >= 1:
             raise ValueError("Confidence of test must be between 0 and 1!")

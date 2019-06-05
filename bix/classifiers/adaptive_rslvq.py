@@ -11,11 +11,11 @@ import math
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils.multiclass import unique_labels
-from skmultiflow.core.base import StreamModel
+from skmultiflow.core import BaseSKMObject
 from sklearn.utils import validation
 from sklearn.utils.validation import check_is_fitted
 
-class ARSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
+class ARSLVQ(ClassifierMixin, BaseSKMObject, BaseEstimator):
     """Robust Soft Learning Vector Quantization for Streaming and Non-Streaming Data
     By choosing another gradient descent method the RSLVQ can be used as an adaptive version.
     By setting the batch_size higher than 1, the algorithm works in batch mode.
@@ -297,14 +297,7 @@ class ARSLVQ(ClassifierMixin, StreamModel, BaseEstimator):
 #            raise ValueError("X has wrong number of features\n"
 #                             "found=%d\n"
 #                             "expected=%d" % (self.w_.shape[1], x.shape[1]))
-
-        def foo(e):
-            fun = np.vectorize(lambda w: self._costf(e, w),
-                               signature='(n)->()')
-            pred = fun(self.w_).argmax()
-            return self.c_w_[pred]
-
-        return np.vectorize(foo, signature='(n)->()')(x)
+        return np.array([self.c_w_[np.array([self._costf(xi,p) for p in self.w_]).argmax()] for xi in x])
 
     def posterior(self, y, x):
         """

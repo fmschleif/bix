@@ -142,6 +142,58 @@ class Study():
         inc = HyperplaneGenerator(random_state=112)
         
         return [ra_sine, rg_sine, ra_stagger, rg_stagger, ra_sea, rg_sea, ra_mixed, rg_mixed, inc]
+    
+    def init_reoccuring_standard_streams(self):
+        """Initialize the standard streams as reoccuring
+        We can only introduce reoccuring drift on generators where abrupt or gradual drift is possible.
+        This means all standard streams except RBF, HYPER and RTG"""
+        agrawal_a = ReoccuringDriftStream(stream=AGRAWALGenerator(random_state=112, perturbation=0.1), 
+                            drift_stream=AGRAWALGenerator(random_state=112, 
+                                                          classification_function=2, perturbation=0.1),
+                            random_state=None,
+                            alpha=90.0,
+                            position=2000,
+                            width=1)
+        agrawal_a.name = "agrawal_a"                     
+        agrawal_g = ReoccuringDriftStream(stream=AGRAWALGenerator(random_state=112, perturbation=0.1), 
+                            drift_stream=AGRAWALGenerator(random_state=112, 
+                                                          classification_function=1, perturbation=0.1),
+                            random_state=None,
+                            position=2000,
+                            width=1000)
+        agrawal_g.name = "agrawal_g"             
+        
+        led_a = ReoccuringDriftStream(stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=3),
+                            drift_stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=7),
+                            random_state=None,
+                            alpha=90.0, # angle of change grade 0 - 90
+                            position=2000,
+                            width=1)
+ 
+        led_a.name = "led_a"
+        led_g = ReoccuringDriftStream(stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=3),
+                            drift_stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=7),
+                            random_state=None,
+                            position=2000,
+                            width=1000)
+        led_g.name = "led_g"
+        sea_a = ReoccuringDriftStream(stream=SEAGenerator(random_state=112, noise_percentage=0.1), 
+                            drift_stream=SEAGenerator(random_state=112, 
+                                                          classification_function=2, noise_percentage=0.1),
+                            alpha=90.0,
+                            random_state=None,
+                            position=250000,
+                            width=1)  
+        sea_a.name = "sea_a"                            
+        sea_g = ReoccuringDriftStream(stream=SEAGenerator(random_state=112, noise_percentage=0.1), 
+                            drift_stream=SEAGenerator(random_state=112, 
+                                                          classification_function=1, noise_percentage=0.1),
+                            random_state=None,
+                            position=250000,
+                            width=50000)
+        sea_g.name = "sea_g"
+            
+        return [agrawal_a, agrawal_g, led_a, led_g, sea_a, sea_g]
 
     def init_real_world(self):
         """Initialize real world data streams, will be loaded from file"""

@@ -75,7 +75,7 @@ class GridSearch(Study):
     def search(self):
         start = time.time()
         self.best_runs.extend(Parallel(n_jobs=-1,max_nbytes=None)(delayed(self.self_job)(stream,self.clf,self.grid,self.metrics,self.max_samples) for stream in self.streams))
-        end = time.time() -start
+        end = time.time() - start
         print("\n--------------------------\n")
         print("Duration of grid search "+str(end)+" seconds")
 

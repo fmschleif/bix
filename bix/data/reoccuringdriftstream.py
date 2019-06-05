@@ -3,6 +3,8 @@ from skmultiflow.data.base_stream import Stream
 from skmultiflow.utils import check_random_state
 from skmultiflow.data import AGRAWALGenerator
 
+np.seterr(over='raise')
+
 class ReoccuringDriftStream(Stream):
     """ ReoccuringDriftStream
 
@@ -196,11 +198,19 @@ class ReoccuringDriftStream(Stream):
         return self.current_sample_x, self.current_sample_y.flatten()
 
     def inv_sigmoid_prob(self,x):
-        return (1 - 1.0 / (1.0 + np.exp(x)))
+        try:
+            return 1 - 1.0 / (1.0 + np.exp(x))
+        except:
+            # Overflow in exp function return value gets 1 - asymptotically 0
+            return 1 - 1e-8
 
     def sigmoid_prob(self,x):
-        return  1.0 / (1.0 + np.exp(x))
-
+        try:
+            return  1.0 / (1.0 + np.exp(x))
+        except Exception:
+            # Overflow in exp function return value gets asymptotically 0
+            return 1e-8
+            
     def restart(self):
         self.random_state = check_random_state(self._original_random_state)
         self.sample_idx = 0
