@@ -15,17 +15,20 @@ from pathlib import Path
 from typing import List, Tuple, Dict
 from datetime import *
 
-from keras import Sequential
-from keras.layers import Embedding, Flatten, Dense
-from keras_preprocessing.sequence import pad_sequences
+from keras import Sequential, Input, Model
+from keras.layers import Embedding, Flatten, Dense, Dot, Reshape, Activation
+from keras_preprocessing.sequence import pad_sequences, skipgrams
 from keras_preprocessing.text import Tokenizer
 from nltk import SnowballStemmer
 from nltk.corpus import stopwords
 from numpy import asarray, zeros
+import numpy as np
 from numpy.core.multiarray import ndarray
 from twitter import Status, TwitterError
 from bix.data.twitter.config import TWITTER_CONFIG
 from nltk.stem import PorterStemmer
+
+from bix.data.twitter.model_input import ModelInput
 
 
 class TwitterRetriever:
@@ -311,7 +314,7 @@ class TwitterRetriever:
         return mat, data
 
     @classmethod
-    def perform_word_embedding(cls, data: List[str], labels: List[str], t: Tokenizer) -> (Sequential, List[str]):
+    def perform_word_embedding_glove(cls, data: List[str], labels: List[str], t: Tokenizer) -> (Sequential, List[str]):
         vocab_size = len(t.word_index) + 1
         embedding_vector_size = 200
         max_tweet_word_count = max([len(e.split()) for e in data])
@@ -340,7 +343,7 @@ class TwitterRetriever:
         embedding_matrix = zeros((vocab_size, embedding_vector_size))
         print(str(embedding_matrix.shape))
         for word, i in t.word_index.items():
-            embedding_vector = embeddings_index.get(word)
+            embedding_vector = embeddings_index.get(word) # todo: stemm glove index
             if embedding_vector is not None:
                 embedding_matrix[i] = embedding_vector
 
@@ -364,6 +367,100 @@ class TwitterRetriever:
         return model, data
 
     @classmethod
+    def perform_word_embedding(cls, data: List[str], labels: List[str], t: Tokenizer) -> ModelInput:
+        vocab_size = len(t.word_index) + 1
+        embedding_vector_size = 200 # can be tweaked
+        max_tweet_word_count = max([len(e.split()) for e in data])
+
+        labels_int, _ = cls.encode_labels(labels)
+
+        # integer encode the documents
+        encoded_docs = t.texts_to_sequences(data)
+        print(encoded_docs)
+        # pad documents to a max length of [embedding_vector_size] words
+        padded_docs = pad_sequences(encoded_docs, maxlen=max_tweet_word_count, padding='post')
+        print(padded_docs)
+
+        # define the model
+        model = Sequential()
+        model.add(Embedding(vocab_size, embedding_vector_size, input_length=max_tweet_word_count))
+        model.add(Flatten())
+        model.add(Dense(1, activation='sigmoid'))
+        # compile the model
+        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
+        # summarize the model
+        print(model.summary())
+
+        # fit the model
+        model.fit(padded_docs, labels_int, epochs=5, verbose=0) # training
+        # evaluate the model
+        loss, accuracy = model.evaluate(padded_docs, labels_int, verbose=0)
+        print('Accuracy: %f' % (accuracy * 100))
+
+        weights = model.layers[0].get_weights()
+        print(f"num: {len(weights)}, dim: {weights[0].shape}")
+
+        return ModelInput(x=padded_docs, y=labels_int, embedding_weights=weights, mode='embedding')
+
+    @classmethod
+    def prepare_skip_gram(cls, data: List[str], labels: List[str], t: Tokenizer):
+        vocab_size = len(t.word_index) + 1
+        embedding_vector_size = 200  # can be tweaked
+        max_tweet_word_count = max([len(e.split()) for e in data])
+
+        labels_int, _ = cls.encode_labels(labels)
+
+        # integer encode the documents
+        encoded_docs = t.texts_to_sequences(data)
+        print(encoded_docs)
+        # pad documents to a max length of [embedding_vector_size] words
+        padded_docs = pad_sequences(encoded_docs, maxlen=max_tweet_word_count, padding='post')
+        #print(padded_docs)
+
+        dim_embedddings = 128
+
+        # inputs
+        w_inputs = Input(shape=(1,), dtype='int32')
+        w = Embedding(vocab_size, dim_embedddings)(w_inputs)
+
+        # context
+        c_inputs = Input(shape=(1,), dtype='int32')
+        c = Embedding(vocab_size, dim_embedddings)(c_inputs)
+        o = Dot(axes=2)([w, c])
+        o = Reshape((1,), input_shape=(1, 1))(o)
+        o = Activation('sigmoid')(o)
+
+        model = Model(inputs=[w_inputs, c_inputs], outputs=o)
+        model.summary()
+        model.compile(loss='binary_crossentropy', optimizer='adam')
+
+        for _ in range(1): # maybe increase this later
+            loss = 0.
+            for i, doc in enumerate(encoded_docs):
+                data, labels = skipgrams(sequence=doc, vocabulary_size=vocab_size, window_size=5, negative_samples=5.)
+                x = [np.array(x) for x in zip(*data)]
+                y = np.array(labels, dtype=np.int32)
+                if x:
+                    loss += model.train_on_batch(x, y)
+                if i > 2000: # for debug purposes TODO: remove
+                    break
+
+            print(loss)
+
+        # todo: get mat out of model i can work with
+
+        # fit the model
+        #model.fit(padded_docs, labels_int, epochs=5, verbose=0)
+        # evaluate the model
+        #loss, accuracy = model.evaluate(encoded_docs, labels_int, verbose=0)
+        #print('Accuracy: %f' % (accuracy * 100))
+
+        weights = model.layers[3].get_weights()
+        print(f"num: {len(weights)}, dim: {weights[0].shape}")
+
+        return ModelInput(x=padded_docs, y=labels_int, embedding_weights=weights, mode='skip_gram')
+
+    @classmethod
     def encode_labels(cls, labels: List[str]) -> (List[int], Dict[int, str]):
         unique_labels = TwitterRetriever.remove_duplicates_generic(labels)
         encoded_labels = [unique_labels.index(e) for e in labels]
@@ -377,3 +474,4 @@ class TwitterRetriever:
         seen = set()
         seen_add = seen.add
         return [x for x in seq if not (x in seen or seen_add(x))]
+
