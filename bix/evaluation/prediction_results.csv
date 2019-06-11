@@ -1,0 +1,21 @@
+,KSWIN,ADWIN,EDDM,DDM
+agrawal_a,0.51,0.53,0.53,0.53
+agrawal_g,0.53,0.56,0.58,0.56
+Hyperplane Generator,0.4,0.41,0.4,0.4
+led_a,1.0,1.0,0.82,0.88
+led_g,1.0,1.0,0.97,0.93
+rand_tree,0.51,0.43,0.54,0.54
+rbf_if,0.65,0.46,0.48,0.66
+rbf_im,0.58,0.5,0.48,0.52
+sea_a,0.78,0.76,0.77,0.67
+sea_g,0.66,0.71,0.69,0.61
+Sine Generator_Sine Generator_1000_1,0.91,0.54,0.54,0.46
+Sine Generator_Sine Generator_1000_1000,0.9,0.54,0.54,0.46
+Stagger Generator_Stagger Generator_1000_1,1.0,1.0,0.94,0.37
+Stagger Generator_Stagger Generator_1000_1000,1.0,1.0,0.98,0.75
+SEA Generator_SEA Generator_1000_1,0.99,0.97,0.97,0.4
+SEA Generator_SEA Generator_1000_1000,0.95,0.98,0.98,0.4
+Mixed Generator_Mixed Generator_1000_1,0.85,0.51,0.83,0.51
+Mixed Generator_Mixed Generator_1000_1000,0.73,0.85,0.8,0.51
+Hyperplane Generator,0.73,0.68,0.74,0.74
+Mean,0.77,0.71,0.71,0.57

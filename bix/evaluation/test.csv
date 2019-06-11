@@ -1,0 +1,21 @@
+,Streams,KSWIN,ADWIN,EDDM,DDM
+0,Sine Generator_Sine Generator_1000_1,1.0,1.0,1.0,1.0
+1,Sine Generator_Sine Generator_1000_1000,1.0,1.0,1.0,1.0
+2,Stagger Generator_Stagger Generator_1000_1,1.0,1.0,1.0,1.0
+3,Stagger Generator_Stagger Generator_1000_1000,1.0,1.0,1.0,1.0
+4,SEA Generator_SEA Generator_1000_1,1.0,1.0,1.0,1.0
+5,SEA Generator_SEA Generator_1000_1000,1.0,1.0,1.0,1.0
+6,Mixed Generator_Mixed Generator_1000_1,0.7,0.7,0.7,0.7
+7,Mixed Generator_Mixed Generator_1000_1000,0.7,0.7,0.7,0.7
+8,Hyperplane Generator,0.1,0.1,0.1,0.1
+9,agrawal_a,0.8,0.8,0.8,0.8
+10,agrawal_g,0.8,0.8,0.8,0.8
+11,Hyperplane Generator,0.4,0.4,0.4,0.4
+12,led_a,1.0,1.0,1.0,1.0
+13,led_g,1.0,1.0,1.0,1.0
+14,rand_tree,0.5,0.5,0.5,0.5
+15,rbf_if,0.8,0.8,0.8,0.8
+16,rbf_im,0.9,0.9,0.9,0.9
+17,sea_a,0.9,0.9,0.9,0.9
+18,sea_g,0.9,0.9,0.9,0.9
+19,Mean,0.8157894736842107,0.8157894736842107,0.8157894736842107,0.8157894736842107

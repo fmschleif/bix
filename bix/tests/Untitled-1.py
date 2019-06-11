@@ -1,0 +1,3 @@
+msg = "Hel"
+
+print(msg)
