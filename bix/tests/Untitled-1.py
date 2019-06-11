@@ -1,3 +1,0 @@
-msg = "Hel"
-
-print(msg)
