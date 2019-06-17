@@ -12,7 +12,6 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils import validation
 from sklearn.utils.validation import check_is_fitted
 from itertools import product
-from skmultiflow.core.base import StreamModel
 from sklearn.utils.multiclass import unique_labels
 import math
 
@@ -26,7 +25,7 @@ def _squared_euclidean(a, b=None):
     return np.maximum(d, 0)
 
 
-class GLVQ(ClassifierMixin, StreamModel, BaseEstimator):
+class GLVQ(ClassifierMixin, BaseEstimator):
     """
     Generalized Learning Vector Quantization
     Parameters
