@@ -16,6 +16,7 @@ from skmultiflow.meta import OzaBagging, OzaBaggingAdwin, AdaptiveRandomForest
 from skmultiflow.data import LEDGeneratorDrift
 from bix.data.reoccuringdriftstream import ReoccuringDriftStream
 from skmultiflow.data.concept_drift_stream import ConceptDriftStream
+from skmultiflow.data.file_stream import FileStream
 def test_parameter_grid_search_arslvq():
     grid = {"sigma": np.append(1, np.arange(
         2, 11, 2)), "prototypes_per_class": np.append(1, np.arange(2, 11, 2)),
@@ -65,8 +66,12 @@ def test_missing_streams():
                                   random_state=None,
                                   position=2000,
                                   width=1000)
+    covertype = FileStream(os.path.realpath('covtype.csv'))  # Label failure
+    covertype.name = "covertype"
+    poker = FileStream(os.path.realpath('poker.csv'))  # label failure
+    poker.name = "poker"
     gs = GridSearch(clf=clf, grid=grid, max_samples=50000)
-    gs.streams = [led_a,led_g,led_fa,led_fg]
+    gs.streams = [led_a,led_g,led_fa,led_fg,covertype,poker]
     gs.search()
     gs.save_summary()
 
