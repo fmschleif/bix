@@ -5,7 +5,7 @@ Created on Tue Jun 3 08:58:46 2019
 
 @author: Moritz Heusinger <moritz.heusinger@gmail.com>
 """
-
+import os
 import numpy as np
 from bix.evaluation.gridsearch import GridSearch
 from bix.evaluation.crossvalidation import CrossValidation
