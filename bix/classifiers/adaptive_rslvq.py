@@ -357,7 +357,7 @@ class ARSLVQ(ClassifierMixin, BaseSKMObject, BaseEstimator):
         
     def _validate_train_parms(self, train_set, train_lab, classes=None):
         random_state = validation.check_random_state(self.random_state)
-        train_set, train_lab = validation.check_X_y(train_set, train_lab)
+        train_set, train_lab = validation.check_X_y(train_set, train_lab.ravel())
 
         if(self.initial_fit):
             if(classes):
