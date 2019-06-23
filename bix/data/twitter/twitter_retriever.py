@@ -420,15 +420,13 @@ class TwitterRetriever:
         padded_docs = pad_sequences(encoded_docs, maxlen=max_tweet_word_count, padding='post')
         #print(padded_docs)
 
-        dim_embedddings = 128
-
         # inputs
         w_inputs = Input(shape=(1,), dtype='int32')
-        w = Embedding(vocab_size, dim_embedddings)(w_inputs)
+        w = Embedding(vocab_size, embedding_vector_size)(w_inputs)
 
         # context
         c_inputs = Input(shape=(1,), dtype='int32')
-        c = Embedding(vocab_size, dim_embedddings)(c_inputs)
+        c = Embedding(vocab_size, embedding_vector_size)(c_inputs)
         o = Dot(axes=2)([w, c])
         o = Reshape((1,), input_shape=(1, 1))(o)
         o = Activation('sigmoid')(o)
