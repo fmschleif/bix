@@ -70,8 +70,11 @@ def test_missing_streams():
     covertype.name = "covertype"
     poker = FileStream(os.path.realpath('poker.csv'))  # label failure
     poker.name = "poker"
+    airlines = FileStream(os.path.realpath('airlines.csv'))
+    airlines.name = "airport"
     gs = GridSearch(clf=clf, grid=grid, max_samples=50000)
-    gs.streams = [led_a,led_g,led_fa,led_fg,covertype,poker]
+
+    gs.streams = [led_a,led_g,led_fa,led_fg,covertype,poker,airlines]
     gs.search()
     gs.save_summary()
 
@@ -88,17 +91,17 @@ def test():
 
 def test_grid():
     clfs = [
-            OzaBagging(base_estimator=KNN()), 
-            OzaBaggingAdwin(base_estimator=KNN()), 
             AdaptiveRandomForest(), 
             SAMKNN(),
             HAT()
     ]
     cv = CrossValidation(clfs=clfs, max_samples=1000000, test_size=1)
-    cv.streams = cv.init_real_world() + cv.init_standard_streams()  + cv.init_reoccuring_streams()+cv.init_reoccuring_standard_streams()
+    cv.streams = cv.init_real_world() + cv.init_standard_streams()  + cv.init_reoccuring_standard_streams()
     cv.test()
     cv.save_summary()
 
+
 if __name__ == "__main__":
    # test_parameter_grid_search_arslvq()
-   test_missing_streams()
+   #test_missing_streams()
+   test_grid()

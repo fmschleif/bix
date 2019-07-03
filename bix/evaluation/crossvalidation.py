@@ -93,7 +93,7 @@ class CrossValidation(Study):
     def test(self):
         start = time.time()
         grid = self.create_grid(self.clfs, self.streams)
-        self.result.extend(Parallel(n_jobs=1,max_nbytes=None )
+        self.result.extend(Parallel(n_jobs=-1,max_nbytes=None )
                            (delayed(self.grid_job)(elem[0], elem[1]) for elem in grid))
         # for elem in grid:
         #     self.result.append(self.grid_job(elem[0],elem[1]))
