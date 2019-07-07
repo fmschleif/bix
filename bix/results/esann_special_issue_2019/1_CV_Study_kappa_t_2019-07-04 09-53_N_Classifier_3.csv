@@ -1,0 +1,4 @@
+Classifier,covertype,elec,poker,weather,gmsc,moving_squares,mixed_a,mixed_g,Hyperplane Generator,led_a,led_g,rand_tree,rbf_if,rbf_im,sea_a,sea_g,Mixed Generator_Mixed Generator_1000_1,Mixed Generator_Mixed Generator_1000_1000,Led Generator with drift_Led Generator with drift_1000_1,Led Generator with drift_Led Generator with drift_1000_1000,SEA Generator_SEA Generator_1000_1,SEA Generator_SEA Generator_1000_50000
+AdaptiveRandomForest,0.2867,-0.0813,0.1034,0.1676,0.4613,0.5114,0.8687,0.8229,-0.6507,0.1105,0.1111,0.1722,0.4738,0.5842,0.75,0.7296,0.6998,0.7651,0.1122,0.1099,0.7113,0.6725
+SAMKNN,-1.1572,-0.8741,0.1952,0.3059,0.4375,0.9659,0.9791,0.9791,-0.5195,0.1108,0.1106,0.3754,0.8735,0.8773,0.7395,0.764,0.7048,0.7048,0.1106,0.1098,0.723,0.746
+HAT,-2.6104,-0.5377,-0.3925,-0.0111,0.0697,0.7296,0.7377,0.7377,-0.3072,0.1117,0.1114,0.2728,0.2465,0.4449,0.6128,0.6442,0.0504,0.0504,0.1102,0.1103,0.6154,0.6314

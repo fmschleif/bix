@@ -3,7 +3,7 @@ from skmultiflow.data.base_stream import Stream
 from skmultiflow.utils import check_random_state
 from skmultiflow.data import AGRAWALGenerator
 
-np.seterr(over='raise')
+np.seterr(over='warn')
 
 class ReoccuringDriftStream(Stream):
     """ ReoccuringDriftStream

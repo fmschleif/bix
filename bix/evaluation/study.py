@@ -64,20 +64,14 @@ class Study():
         Abdessalem, Talel. (2017). Adaptive random forests for evolving data 
         stream classification. Machine Learning. 1-27. 10.1007/s10994-017-5642-8. 
         """
-        agrawal_a = ConceptDriftStream(stream=AGRAWALGenerator(random_state=112, perturbation=0.1), 
-                            drift_stream=AGRAWALGenerator(random_state=112, 
-                                                          classification_function=2, perturbation=0.1),
-                            random_state=None,
-                            alpha=90.0,
-                            position=250000)
-        agrawal_a.name = "agrawal_a"                     
-        agrawal_g = ConceptDriftStream(stream=AGRAWALGenerator(random_state=112, perturbation=0.1), 
-                            drift_stream=AGRAWALGenerator(random_state=112, 
-                                                          classification_function=1, perturbation=0.1),
-                            random_state=None,
-                            position=250000,
-                            width=50000)
-        agrawal_g.name = "agrawal_g"             
+        mixed1 = MIXEDGenerator(classification_function=0, random_state=112, balance_classes=False)
+        mixed2 = MIXEDGenerator(classification_function=1, random_state=112, balance_classes=False)
+        ra_mixed = ConceptDriftStream(stream=mixed1, drift_stream=mixed2, random_state=112, alpha=90.0, position=2000,width=1)
+        rg_mixed = ConceptDriftStream(stream=mixed1, drift_stream=mixed2, random_state=112, alpha=90.0, position=2000,width=1000)
+        rg_mixed.name = "mixed_g"
+        ra_mixed.name = "mixed_a"
+
+
         hyper = HyperplaneGenerator(mag_change=0.001, noise_percentage=0.1)
         
         led_a = ConceptDriftStream(stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=3),
@@ -115,7 +109,7 @@ class Study():
                             position=250000,
                             width=50000)
         sea_g.name = "sea_g"                  
-        return [agrawal_a, agrawal_g, hyper, led_a, led_g, rand_tree, rbf_if, rbf_im, sea_a, sea_g]
+        return [ra_mixed, rg_mixed, hyper, led_a, led_g, rand_tree, rbf_if, rbf_im, sea_a, sea_g]
         
     def init_reoccuring_streams(self):
         """Initialize reoccuring data streams: abrupt and gradual"""
@@ -147,22 +141,13 @@ class Study():
         """Initialize the standard streams as reoccuring
         We can only introduce reoccuring drift on generators where abrupt or gradual drift is possible.
         This means all standard streams except RBF, HYPER and RTG"""
-        agrawal_a = ReoccuringDriftStream(stream=AGRAWALGenerator(random_state=112, perturbation=0.1), 
-                            drift_stream=AGRAWALGenerator(random_state=112, 
-                                                          classification_function=2, perturbation=0.1),
-                            random_state=None,
-                            alpha=90.0,
-                            position=2000,
-                            width=1)
-        agrawal_a.name = "agrawal_a"                     
-        agrawal_g = ReoccuringDriftStream(stream=AGRAWALGenerator(random_state=112, perturbation=0.1), 
-                            drift_stream=AGRAWALGenerator(random_state=112, 
-                                                          classification_function=1, perturbation=0.1),
-                            random_state=None,
-                            position=2000,
-                            width=1000)
-        agrawal_g.name = "agrawal_g"             
-        
+
+        mixed1 = MIXEDGenerator(classification_function=0, random_state=112, balance_classes=False)
+        mixed2 = MIXEDGenerator(classification_function=1, random_state=112, balance_classes=False)
+        ra_mixed = ReoccuringDriftStream(stream=mixed1, drift_stream=mixed2, random_state=112, alpha=90.0, position=2000,width=1)
+        rg_mixed = ReoccuringDriftStream(stream=mixed1, drift_stream=mixed2, random_state=112, alpha=90.0, position=2000,width=1000)
+
+
         led_a = ReoccuringDriftStream(stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=3),
                             drift_stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=7),
                             random_state=None,
@@ -170,13 +155,13 @@ class Study():
                             position=2000,
                             width=1)
  
-        led_a.name = "led_a"
+
         led_g = ReoccuringDriftStream(stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=3),
                             drift_stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=7),
                             random_state=None,
                             position=2000,
                             width=1000)
-        led_g.name = "led_g"
+
         sea_a = ReoccuringDriftStream(stream=SEAGenerator(random_state=112, noise_percentage=0.1), 
                             drift_stream=SEAGenerator(random_state=112, 
                                                           classification_function=2, noise_percentage=0.1),
@@ -184,16 +169,16 @@ class Study():
                             random_state=None,
                             position=250000,
                             width=1)  
-        sea_a.name = "sea_a"                            
+
         sea_g = ReoccuringDriftStream(stream=SEAGenerator(random_state=112, noise_percentage=0.1), 
                             drift_stream=SEAGenerator(random_state=112, 
                                                           classification_function=1, noise_percentage=0.1),
                             random_state=None,
                             position=250000,
                             width=50000)
-        sea_g.name = "sea_g"
+
             
-        return [agrawal_a, agrawal_g, led_a, led_g, sea_a, sea_g]
+        return [ra_mixed, rg_mixed, led_a, led_g, sea_a, sea_g]
 
     def init_real_world(self):
         """Initialize real world data streams, will be loaded from file"""

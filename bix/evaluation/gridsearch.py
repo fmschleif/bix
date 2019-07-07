@@ -103,6 +103,21 @@ class GridSearch(Study):
         print("Best run on "+s_name+" with "+" "+self.clf.__class__.__name__+" "+str(dfr.values[dfr["accuracy"].values.argmax()]))
         return [s_name]+[self.clf.__class__.__name__]+dfr.values[dfr["accuracy"].values.argmax()].tolist()
 
+    def merge_summary(self):
+        self.chwd_root()
+        os.chdir(os.path.join(os.getcwd(),self.path))
+
+        for file in glob.glob("*.csv"):
+            dfr = pd.read_csv(file,index_col=0,header=0)
+
+            s_name = "NA"
+            for s in self.streams:
+                if s.name in file:
+                    s_name = s.name
+
+            self.best_runs.append([s_name]+[self.clf.__class__.__name__] + dfr.values[dfr["accuracy"].values.argmax()].tolist())
+        self.save_summary()
+
     def save_summary(self):
         if len(self.best_runs) == 0:
             raise ValueError("No results to save! Run test prior!")
