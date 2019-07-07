@@ -1,4 +1,6 @@
+pandas
 scipy
 numpy
 python-twitter
 nltk
+pytz

@@ -1,0 +1,44 @@
+import pickle
+from typing import List
+
+from keras_preprocessing.text import Tokenizer
+
+from bix.data.twitter.base.utils import create_path_if_not_exists
+
+
+def tokenize(data: List[str], verbose: bool = False) -> Tokenizer:
+
+    t = Tokenizer(filters='!"„“…»«#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n')
+
+    t.fit_on_texts(data)
+
+    if verbose:
+        #print('wordcounts')
+        #print(t.word_counts)
+        print('document_count')
+        print(t.document_count)
+        #print('wordindex')
+        #print(t.word_index)
+        #print('word_docs')
+        #print(t.word_docs)
+
+        print('--------- ' + data[0][0] + ' ---------')
+        for e, n in sorted(t.word_counts.items(), key=lambda x: x[1])[-9:]:
+            print('\t' + str(e) + ': ' + str(n))
+
+    return t
+
+
+def save_tokenizer(tok: Tokenizer, name: str):
+    # saving
+    create_path_if_not_exists('tokenized')
+    create_path_if_not_exists(f'tokenized/{name}')
+    with open(f'tokenized/{name}/tok.pickle', 'wb') as handle:
+        pickle.dump(tok, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def load_tokenizer(name: str) -> Tokenizer:
+    # loading
+    with open(f'tokenized/{name}/tok.pickle', 'rb') as handle:
+        tokenizer = pickle.load(handle)
+        return tokenizer
