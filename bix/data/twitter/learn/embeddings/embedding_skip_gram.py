@@ -4,14 +4,14 @@ from keras import Sequential, Input, Model
 from keras.layers import Embedding, Flatten, Dense, Dot, Reshape, Activation
 from keras_preprocessing.sequence import skipgrams
 from keras_preprocessing.text import Tokenizer
-from numpy import asarray, zeros, np
+import numpy as np
 
 from bix.data.twitter.learn.embeddings.embedding_abstract import EmbeddingAbstract
 
 
 class EmbeddingSkipGram(EmbeddingAbstract):
-    def __init__(self, tokenizer: Tokenizer, x: List[str], y: List[int]) -> None:
-        super().__init__(tokenizer, x, y)
+    def __init__(self, tokenizer: Tokenizer, padded_x, unpadded_x, max_tweet_word_count: int, y: List[int]) -> None:
+        super().__init__(tokenizer, padded_x, unpadded_x, max_tweet_word_count, y)
 
         self.embedding_vector_size = 200
         self.weights = None

@@ -3,8 +3,6 @@ from typing import List
 
 from keras_preprocessing.text import Tokenizer
 
-from bix.data.twitter.base.utils import create_path_if_not_exists
-
 
 def tokenize(data: List[str], verbose: bool = False) -> Tokenizer:
 
@@ -30,6 +28,7 @@ def tokenize(data: List[str], verbose: bool = False) -> Tokenizer:
 
 
 def save_tokenizer(tok: Tokenizer, name: str):
+    from bix.data.twitter.base.utils import create_path_if_not_exists
     # saving
     create_path_if_not_exists('tokenized')
     create_path_if_not_exists(f'tokenized/{name}')

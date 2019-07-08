@@ -9,8 +9,8 @@ from bix.data.twitter.learn.embeddings.embedding_abstract import EmbeddingAbstra
 
 
 class EmbeddingWord(EmbeddingAbstract):
-    def __init__(self, tokenizer: Tokenizer, x: List[str], y: List[int]) -> None:
-        super().__init__(tokenizer, x, y)
+    def __init__(self, tokenizer: Tokenizer, padded_x, unpadded_x, max_tweet_word_count: int, y: List[int]) -> None:
+        super().__init__(tokenizer, padded_x, unpadded_x, max_tweet_word_count, y)
 
         self.embedding_vector_size = 200
         self.weights = None
@@ -34,9 +34,9 @@ class EmbeddingWord(EmbeddingAbstract):
 
     def learn(self):
         # fit the model
-        self.model.fit(self.x, self.y, epochs=5, verbose=0)  # training
+        self.model.fit(self.x, self.y, epochs=1, verbose=2)  # training
         # evaluate the model
-        loss, accuracy = self.model.evaluate(self.x, self.y, verbose=0)
+        loss, accuracy = self.model.evaluate(self.x, self.y, verbose=2)
         print('Accuracy: %f' % (accuracy * 100))
 
         # fit the model

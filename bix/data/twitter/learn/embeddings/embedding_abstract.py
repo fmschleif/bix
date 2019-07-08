@@ -7,12 +7,12 @@ from bix.data.twitter.base.utils import encode_embed_docs
 
 
 class EmbeddingAbstract:
-    def __init__(self, tokenizer: Tokenizer, x: List[str], y: List[int]) -> None:
+    def __init__(self, tokenizer: Tokenizer, padded_x, unpadded_x, max_tweet_word_count: int, y: List[int]) -> None:
         self.vocab_size = len(tokenizer.word_index) + 1
         self.tokenizer = tokenizer
-        self.max_tweet_word_count = max([len(e.split()) for e in x])
+        self.max_tweet_word_count = max_tweet_word_count
 
-        self.x, self.unpadded_x = self._prepare_docs(x)
+        self.x, self.unpadded_x = padded_x, unpadded_x
         self.y = y
 
         self.model = None
