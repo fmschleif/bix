@@ -9,8 +9,8 @@ from bix.data.twitter.learn.embeddings.embedding_abstract import EmbeddingAbstra
 
 
 class EmbeddingWord(EmbeddingAbstract):
-    def __init__(self, tokenizer: Tokenizer, padded_x, unpadded_x, max_tweet_word_count: int, y: List[int]) -> None:
-        super().__init__(tokenizer, padded_x, unpadded_x, max_tweet_word_count, y)
+    def __init__(self, tokenizer: Tokenizer, padded_x, unpadded_x, max_tweet_word_count: int, vocab_size: int, y: List[int]) -> None:
+        super().__init__(tokenizer, padded_x, unpadded_x, max_tweet_word_count, vocab_size, y)
 
         self.embedding_vector_size = 200
         self.weights = None

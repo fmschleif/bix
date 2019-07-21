@@ -93,6 +93,7 @@ def load_training_sentiment_data_small():
     padded_x = load_pickle('tokenized/learn/small_padded_x.pickle')
     unpadded_x = load_pickle('tokenized/learn/small_unpadded_x.pickle')
     max_tweet_word_count = load_pickle('tokenized/learn/max_tweet_word_count.pickle')
-    return t, y, padded_x, unpadded_x, max_tweet_word_count
+    vocab_size = load_pickle('tokenized/learn/vocab_size.pickle')
+    return t, y, padded_x, unpadded_x, max_tweet_word_count, vocab_size
 
 

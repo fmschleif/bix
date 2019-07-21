@@ -4,17 +4,19 @@ from typing import List
 from keras_preprocessing.text import Tokenizer
 
 
-def tokenize(data: List[str], verbose: bool = False) -> Tokenizer:
+def tokenize(data: List[str], verbose: bool = False) -> (Tokenizer, int):
 
-    t = Tokenizer(filters='!"„“…»«#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n')
+    # 545409 is big
+    t = Tokenizer(filters='!"„“…»«#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n', num_words=10000)
 
     t.fit_on_texts(data)
 
     if verbose:
+        print(f'indexsize: {len(t.word_counts)}')
         #print('wordcounts')
         #print(t.word_counts)
-        print('document_count')
-        print(t.document_count)
+        #print('document_count')
+        #print(t.document_count)
         #print('wordindex')
         #print(t.word_index)
         #print('word_docs')
@@ -24,7 +26,7 @@ def tokenize(data: List[str], verbose: bool = False) -> Tokenizer:
         for e, n in sorted(t.word_counts.items(), key=lambda x: x[1])[-9:]:
             print('\t' + str(e) + ': ' + str(n))
 
-    return t
+    return t, t.num_words
 
 
 def save_tokenizer(tok: Tokenizer, name: str):

@@ -1,5 +1,6 @@
 from typing import List
 
+import tensorflow
 from keras import Sequential
 from keras.layers import Embedding, Flatten, Dense
 from keras_preprocessing.text import Tokenizer
@@ -9,8 +10,8 @@ from bix.data.twitter.learn.embeddings.embedding_abstract import EmbeddingAbstra
 
 
 class EmbeddingGlove(EmbeddingAbstract):
-    def __init__(self, tokenizer: Tokenizer, padded_x, unpadded_x, max_tweet_word_count: int, y: List[int]) -> None:
-        super().__init__(tokenizer, padded_x, unpadded_x, max_tweet_word_count, y)
+    def __init__(self, tokenizer: Tokenizer, padded_x, unpadded_x, max_tweet_word_count: int, vocab_size: int, y: List[int]) -> None:
+        super().__init__(tokenizer, padded_x, unpadded_x, max_tweet_word_count, vocab_size, y)
 
         self.embedding_vector_size = 200
         self.embedding_matrix = None
@@ -32,6 +33,7 @@ class EmbeddingGlove(EmbeddingAbstract):
         embedding_matrix = zeros((self.vocab_size, self.embedding_vector_size))
         print(str(embedding_matrix.shape))
         for word, i in self.tokenizer.word_index.items():
+            if i == self.vocab_size: break
             embedding_vector = embeddings_index.get(word)  # todo: stemm glove index
             if embedding_vector is not None:
                 embedding_matrix[i] = embedding_vector
@@ -47,7 +49,10 @@ class EmbeddingGlove(EmbeddingAbstract):
         model.add(Flatten())
         model.add(Dense(1, activation='sigmoid'))  # verstehen und vieleicht für ba relevant
         # compile the model
-        model.compile(optimizer='adam', loss='mean_squared_error', metrics=['acc'])
+
+        #run_opts = tensorflow.RunOptions(report_tensor_allocations_upon_oom=True)
+        # compile the model
+        model.compile(optimizer='adam', loss='mean_squared_error', metrics=['acc'])#, options=run_opts)
         # summarize the model
         print(model.summary())
 

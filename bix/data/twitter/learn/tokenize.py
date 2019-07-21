@@ -7,7 +7,7 @@ if __name__ == '__main__':
     x = load_csv('learn/tweets.csv')
     y = load_csv('learn/lables.csv')
 
-    tok = tokenize(x, verbose=True)
+    tok, num = tokenize(x, verbose=True)
     max_tweet_word_count = max([len(e.split()) for e in x])
     padded_x, unpadded_x = encode_embed_docs(x, tok, max_tweet_word_count)
 
@@ -16,4 +16,5 @@ if __name__ == '__main__':
     np.save('tokenized/learn/padded_x.npy', padded_x)
     save_pickle(unpadded_x, 'tokenized/learn/unpadded_x.pickle')
     save_pickle(max_tweet_word_count, 'tokenized/learn/max_tweet_word_count.pickle')
+    save_pickle(num, 'tokenized/learn/vocab_size.pickle')
 
