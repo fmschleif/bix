@@ -12,8 +12,7 @@ if __name__ == '__main__':
 
     print('encoding data')
 
-    max_tweet_word_count = max([len(e.split()) for e in x])
-    padded_x, unpadded_x = encode_embed_docs(x, tokenizer, max_tweet_word_count)
+    padded_x, unpadded_x = encode_embed_docs(x, tokenizer)
 
     print('reducing learning data')
 

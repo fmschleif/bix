@@ -68,12 +68,12 @@ def load_model_mat(model_name: str):
     return load_pickle(f'models/{model_name}.pickle')
 
 
-def encode_embed_docs(x: List[str], tokenizer: Tokenizer, max_doc_count: int):
+def encode_embed_docs(x: List[str], tokenizer: Tokenizer):
     # integer encode the documents
     encoded_docs = tokenizer.texts_to_sequences(x)
     print(encoded_docs)
     # pad documents to a max length of [embedding_vector_size] words
-    padded_docs = pad_sequences(encoded_docs, maxlen=max_doc_count, padding='post')
+    padded_docs = pad_sequences(encoded_docs, padding='post')
     print(padded_docs)
     return padded_docs, encoded_docs
 

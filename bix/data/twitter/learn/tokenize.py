@@ -8,8 +8,8 @@ if __name__ == '__main__':
     y = load_csv('learn/lables.csv')
 
     tok, num = tokenize(x, verbose=True)
-    max_tweet_word_count = max([len(e.split()) for e in x])
-    padded_x, unpadded_x = encode_embed_docs(x, tok, max_tweet_word_count)
+    padded_x, unpadded_x = encode_embed_docs(x, tok)
+    max_tweet_word_count = len(padded_x[0])
 
     save_tokenizer(tok, 'learn')
     save_csv('tokenized/learn/lables.csv', y)
