@@ -7,7 +7,7 @@ from keras_preprocessing.text import Tokenizer
 def tokenize(data: List[str], verbose: bool = False) -> (Tokenizer, int):
 
     # 545409 is big
-    t = Tokenizer(filters='!"„“…»«#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n', num_words=10000)
+    t = Tokenizer(filters='!"„“…»«#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n', num_words=25000)
 
     t.fit_on_texts(data)
 

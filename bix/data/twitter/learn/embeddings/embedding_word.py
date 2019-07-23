@@ -12,7 +12,7 @@ class EmbeddingWord(EmbeddingAbstract):
     def __init__(self, tokenizer: Tokenizer, padded_x, unpadded_x, max_tweet_word_count: int, vocab_size: int, y: List[int]) -> None:
         super().__init__(tokenizer, padded_x, unpadded_x, max_tweet_word_count, vocab_size, y)
 
-        self.embedding_vector_size = 200
+        self.embedding_vector_size = 100
         self.weights = None
 
     def prepare(self):

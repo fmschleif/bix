@@ -17,21 +17,31 @@ def clean_text(tweets: List[str], lang: str = 'english') -> List[str]:
     data: List[str] = tweets
     cleaned_text = []
     stops = set(stopwords.words(lang))
+
+    # no ! and .
+    table = str.maketrans(dict.fromkeys(""""#$%&'()*+,-/:;<=>?@[\\]^_`{|}~"""))
+
     for text in data:
-        text = re.sub(r'https?://[^\s]*', '', text)
+        text = re.sub(r'https?://[^\s]*', ' ', text)
+        text = re.sub(r'\.\.\.', ' symboldotdotdot ', text)
+        text = re.sub(r'xD', ' symbolxd ', text)
+        text = re.sub(r':\)', ' symbolxbrackethappy ', text)
+        text = re.sub(r':\(', ' symbolxbracketsad ', text)
+        text = re.sub(r':D', ' symbolxcheer ', text)
 
         ## Remove puncuation
-        text = text.translate(string.punctuation)
+        text = text.translate(table)
 
         ## Convert words to lower case and split them
         text = text.lower().split()
 
         ## Remove stop words[^\s][^\s]
-        text = [w for w in text if not w in stops and len(w) >= 3]
+        #text = [w for w in text if not w in stops and len(w) >= 3]
 
         text = " ".join(text)
 
         # Clean the text
+        text = re.sub(r"(?<!\.)\.(?!\.)", " ", text)
         text = re.sub(r"[^A-Za-z0-9^,!./'+-=]", " ", text)
         text = re.sub(r"what's", "what is ", text)
         text = re.sub(r"\'s", " ", text)

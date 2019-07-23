@@ -60,7 +60,7 @@ class EmbeddingGlove(EmbeddingAbstract):
 
     def learn(self):
         # fit the model
-        self.model.fit(self.x, self.y, epochs=5, verbose=2) # todo: increase epocs
+        #self.model.fit(self.x, self.y, epochs=5, verbose=2) # todo: increase epocs
         # evaluate the model
         loss, accuracy = self.model.evaluate(self.x, self.y, verbose=0)
         print('Accuracy: %f' % (accuracy * 100))

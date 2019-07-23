@@ -50,8 +50,8 @@ class EmbeddingSkipGram(EmbeddingAbstract):
                 y = np.array(labels, dtype=np.int32)
                 if x:
                     loss += self.model.train_on_batch(x, y)
-                if i > 2000:  # for debug purposes TODO: remove
-                    break
+                #if i > 2000:  # for debug purposes TODO: remove
+                #    break
 
             print(loss)
 

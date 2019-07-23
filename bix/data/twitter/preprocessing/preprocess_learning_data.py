@@ -14,8 +14,8 @@ if __name__ == '__main__':
     tweets = [r[5] for r in data]
 
     options = {
-        0: -1,
-        2: 0,
+        0: 0,
+        2: 0.5,
         4: 1,
     }
     lables_int = list(map(lambda x: options[x], lables))

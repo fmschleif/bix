@@ -16,10 +16,10 @@ if __name__ == '__main__':
     model_mat_word = load_model_mat('embedding_word')
     print(f'model_mat_word.shape: {model_mat_word[0].shape}')
     model_mat_glove = load_model_mat('embedding_glove')
-    print(f'model_mat_glove.shape: {model_mat_word[0].shape}')
+    print(f'model_mat_glove.shape: {model_mat_glove[0].shape}')
     # model_mat_skip_gram = load_model_mat('embedding_skip_gram')
 
-    #vocab_size = len(tok.word_index) + 1
+    # vocab_size = len(tok.word_index) + 1
 
     # model = Sequential()
     # model.add(Embedding(vocab_size, model_mat_word[0].shape[1], input_length=max_tweet_word_count,
@@ -44,15 +44,14 @@ if __name__ == '__main__':
 
     combined = concatenate([x1.output, x2.output])
 
-
     z = Dense(10, activation="relu")(combined)
     z = Dense(1, activation="sigmoid")(z)
 
     model = Model(inputs=[x1.input, x2.input], outputs=z)
 
-    #run_opts = tensorflow.RunOptions(report_tensor_allocations_upon_oom=True)
+    # run_opts = tensorflow.RunOptions(report_tensor_allocations_upon_oom=True)
     # compile the model
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])#, options=run_opts)
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])  # , options=run_opts)
     # summarize the model
     print(model.summary())
     # fit the model
