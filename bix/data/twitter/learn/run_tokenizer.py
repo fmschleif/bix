@@ -1,8 +1,6 @@
 from bix.data.twitter.base.utils import load_csv, encode_embed_docs, save_csv, save_pickle
 from bix.data.twitter.learn.tokenizer.tokenizer_utils import tokenize, save_tokenizer
 
-import numpy as np
-
 if __name__ == '__main__':
     x = load_csv('learn/tweets.csv')
     y = load_csv('learn/lables.csv')
@@ -13,7 +11,7 @@ if __name__ == '__main__':
 
     save_tokenizer(tok, 'learn')
     save_csv('tokenized/learn/lables.csv', y)
-    np.save('tokenized/learn/padded_x.npy', padded_x)
+    save_pickle(padded_x, 'tokenized/learn/padded_x.pickle')
     save_pickle(unpadded_x, 'tokenized/learn/unpadded_x.pickle')
     save_pickle(max_tweet_word_count, 'tokenized/learn/max_tweet_word_count.pickle')
     save_pickle(num, 'tokenized/learn/vocab_size.pickle')

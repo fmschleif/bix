@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
 
     print('reducing learning data')
-    x_learn, _, y_learn, _ = train_test_split(x, y, test_size=0.999, random_state=4)  # 16k are more than enough
+    x_learn, _, y_learn, _ = train_test_split(x, y, test_size=0.995, random_state=4)  # 16k are more than enough
 
     print('encoding data')
 

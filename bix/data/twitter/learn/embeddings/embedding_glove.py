@@ -13,14 +13,14 @@ class EmbeddingGlove(EmbeddingAbstract):
     def __init__(self, tokenizer: Tokenizer, padded_x, unpadded_x, max_tweet_word_count: int, vocab_size: int, y: List[int]) -> None:
         super().__init__(tokenizer, padded_x, unpadded_x, max_tweet_word_count, vocab_size, y)
 
-        self.embedding_vector_size = 200
+        self.embedding_vector_size = 100
         self.embedding_matrix = None
         self.weights = None
 
     def prepare(self):
         # load the whole embedding into memory
         embeddings_index = dict()
-        f = open('learn/glove.twitter.27B.200d.txt')
+        f = open('learn/glove.twitter.27B.100d.txt')
         for line in f:
             values = line.split()
             word = values[0]
@@ -60,7 +60,7 @@ class EmbeddingGlove(EmbeddingAbstract):
 
     def learn(self):
         # fit the model
-        #self.model.fit(self.x, self.y, epochs=5, verbose=2) # todo: increase epocs
+        self.model.fit(self.x, self.y, epochs=5, verbose=2) # todo: increase epocs
         # evaluate the model
         loss, accuracy = self.model.evaluate(self.x, self.y, verbose=0)
         print('Accuracy: %f' % (accuracy * 100))
