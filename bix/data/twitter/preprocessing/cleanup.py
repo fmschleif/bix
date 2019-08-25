@@ -22,12 +22,15 @@ def clean_text(tweets: List[str], lang: str = 'english') -> List[str]:
     table = str.maketrans(dict.fromkeys(""""#$%&'()*+,-/:;<=>?@[\\]^_`{|}~"""))
 
     for text in data:
-        text = re.sub(r'https?://[^\s]*', ' ', text)
-        text = re.sub(r'\.\.\.', ' symboldotdotdot ', text)
-        text = re.sub(r'xD', ' symbolxd ', text)
-        text = re.sub(r':\)', ' symbolxbrackethappy ', text)
-        text = re.sub(r':\(', ' symbolxbracketsad ', text)
-        text = re.sub(r':D', ' symbolxcheer ', text)
+        text = re.sub(r'https?://[^\s]*', ' tokenlink ', text)
+        text = re.sub(r'\.\.\.', ' tokendotdotdot ', text)
+        text = re.sub(r'xD', ' tokenxd ', text)
+        text = re.sub(r':\)', ' tokenxbrackethappy ', text)
+        text = re.sub(r':\(', ' tokenxbracketsad ', text)
+        text = re.sub(r':-\)', ' tokennosehappy ', text)
+        text = re.sub(r':-\(', ' tokennosesad ', text)
+        text = re.sub(r':D', ' tokenxcheer ', text)
+        text = re.sub(r':-S', ' tokens ', text)
 
         ## Remove puncuation
         text = text.translate(table)
