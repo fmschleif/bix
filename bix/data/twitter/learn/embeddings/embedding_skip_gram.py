@@ -1,7 +1,7 @@
 from typing import List
 
 from keras import Sequential, Input, Model
-from keras.layers import Embedding, Flatten, Dense, Dot, Reshape, Activation, merge, concatenate
+from keras.layers import Embedding, Flatten, Dense, Dot, Reshape, Activation, concatenate, merge, dot
 from keras_preprocessing.sequence import skipgrams
 from keras_preprocessing.text import Tokenizer
 import numpy as np
@@ -26,8 +26,8 @@ class EmbeddingSkipGram(EmbeddingAbstract):
         EmbeddingSkipGram.vocab_size = vocab_size
 
     def prepare(self):
-        self.grams_x = load_pickle('tokenized/learn/grams_x.pickle')[0:100000]
-        self.grams_y = load_pickle('tokenized/learn/grams_y.pickle')[0:100000]
+        self.grams_x = load_pickle('tokenized/learn/grams_x.pickle')#[0:100000]
+        self.grams_y = load_pickle('tokenized/learn/grams_y.pickle')#[0:100000]
         pass
 
     def define_model(self):
@@ -60,16 +60,18 @@ class EmbeddingSkipGram(EmbeddingAbstract):
         context = Reshape((self.embedding_vector_size, 1))(context)
 
         # setup a cosine similarity operation which will be output in a secondary model
-        similarity = concatenate([target, context], mode='cos', dot_axes=0)
+        #similarity = merge([target, context], mode='cos', dot_axes=0)
+        similarity = dot([target, context], axes=1, normalize=True)
 
         # now perform the dot product operation to get a similarity measure
-        dot_product = concatenate([target, context], mode='dot', dot_axes=1)
+        dot_product = dot([target, context], axes=1)
         dot_product = Reshape((1,))(dot_product)
         # add the sigmoid output layer
         output = Dense(1, activation='sigmoid')(dot_product)
         # create the primary training model
         model = Model(input=[input_target, input_context], output=output)
         model.compile(loss='binary_crossentropy', optimizer='rmsprop')
+        model.summary()
 
         # create a secondary validation model to run our similarity checks during training
         validation_model = Model(input=[input_target, input_context], output=similarity)
@@ -97,8 +99,8 @@ class EmbeddingSkipGram(EmbeddingAbstract):
         #        print("Iteration {}, loss={}".format(cnt, loss))
         #    if cnt % 10000 == 0:
         #        sim_cb.run_sim()
-        self.model.fit(x, y, epochs=1, batch_size=1024)
-        sim_cb.run_sim()
+        self.model.fit(x, y, epochs=10, batch_size=1024, verbose=1)
+        #sim_cb.run_sim()
         #if i > 2000:  # for debug purposes TODO: remove
         #    break
         #print(loss)
@@ -111,7 +113,7 @@ class EmbeddingSkipGram(EmbeddingAbstract):
         #loss, accuracy = self.model.evaluate(x, y, verbose=2)
         #print('Accuracy: %f' % (accuracy * 100))
 
-        weights = self.model.layers[3].get_weights()
+        weights = self.model.layers[2].get_weights()
         print(f"num: {len(weights)}, dim: {weights[0].shape}")
 
         self.weights = weights

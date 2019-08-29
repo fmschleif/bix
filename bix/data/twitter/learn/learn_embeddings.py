@@ -2,7 +2,7 @@ import sys
 
 import gc
 
-from bix.data.twitter.base.utils import save_model_mat, load_training_sentiment_data_small
+from bix.data.twitter.base.utils import save_model_mat, load_training_sentiment_data_small, load_training_sentiment_data
 from bix.data.twitter.learn.embeddings.embedding_glove import EmbeddingGlove
 from bix.data.twitter.learn.embeddings.embedding_skip_gram import EmbeddingSkipGram
 from bix.data.twitter.learn.embeddings.embedding_word import EmbeddingWord
@@ -10,7 +10,7 @@ from bix.data.twitter.learn.embeddings.embedding_word import EmbeddingWord
 if __name__ == '__main__':
     args = sys.argv
     print('loading saved state')
-    tokenizer, y, padded_x, unpadded_x, max_tweet_word_count, vocab_size = load_training_sentiment_data_small()
+    tokenizer, y, padded_x, unpadded_x, max_tweet_word_count, vocab_size = load_training_sentiment_data()
 
     if 'glove' in args:
         print('learning glove...')

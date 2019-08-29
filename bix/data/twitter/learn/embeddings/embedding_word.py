@@ -34,7 +34,7 @@ class EmbeddingWord(EmbeddingAbstract):
 
     def learn(self):
         # fit the model
-        self.model.fit(self.x, self.y, epochs=10, verbose=2)  # training
+        self.model.fit(self.x, self.y, epochs=100, verbose=2, batch_size=1024)  # training
         # evaluate the model
         loss, accuracy = self.model.evaluate(self.x, self.y, verbose=2)
         print('Accuracy: %f' % (accuracy * 100))

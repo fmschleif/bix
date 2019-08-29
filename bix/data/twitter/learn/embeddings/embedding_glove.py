@@ -5,6 +5,7 @@ from keras import Sequential
 from keras.layers import Embedding, Flatten, Dense
 from keras_preprocessing.text import Tokenizer
 from numpy import asarray, zeros
+from nltk import SnowballStemmer
 
 from bix.data.twitter.learn.embeddings.embedding_abstract import EmbeddingAbstract
 
@@ -32,9 +33,11 @@ class EmbeddingGlove(EmbeddingAbstract):
         # create a weight matrix for words in training docs
         embedding_matrix = zeros((self.vocab_size, self.embedding_vector_size))
         print(str(embedding_matrix.shape))
+        stemmer = SnowballStemmer('english')
         for word, i in self.tokenizer.word_index.items():
             if i == self.vocab_size: break
-            embedding_vector = embeddings_index.get(word)  # todo: stemm glove index
+            word_stemmed = stemmer.stem(word)
+            embedding_vector = embeddings_index.get(word_stemmed)  # todo: stemm glove index
             if embedding_vector is not None:
                 embedding_matrix[i] = embedding_vector
 
@@ -60,10 +63,11 @@ class EmbeddingGlove(EmbeddingAbstract):
 
     def learn(self):
         # fit the model
-        self.model.fit(self.x, self.y, epochs=5, verbose=2) # todo: increase epocs
+        #self.model.fit(self.x, self.y, epochs=5, verbose=1) # todo: increase epocs
         # evaluate the model
-        loss, accuracy = self.model.evaluate(self.x, self.y, verbose=0)
-        print('Accuracy: %f' % (accuracy * 100))
+        #loss, accuracy = self.model.evaluate(self.x, self.y, verbose=0)
+        #print('Accuracy: %f' % (accuracy * 100))
+        print("no learning needed (pretrained embedding)")
 
         weights = self.model.layers[0].get_weights()
         print(f"num: {len(weights)}, dim: {weights[0].shape}")

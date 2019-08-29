@@ -39,7 +39,7 @@ def clean_text(tweets: List[str], lang: str = 'english') -> List[str]:
         text = text.lower().split()
 
         ## Remove stop words[^\s][^\s]
-        #text = [w for w in text if not w in stops and len(w) >= 3]
+        text = [w for w in text if not w in stops]
 
         text = " ".join(text)
 

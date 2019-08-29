@@ -81,7 +81,7 @@ def encode_embed_docs(x: List[str], tokenizer: Tokenizer, max_tweets=None):
 def load_training_sentiment_data():
     t = load_tokenizer('learn')
     y = load_csv('tokenized/learn/lables.csv')
-    padded_x = np.load('tokenized/learn/padded_x.npy')
+    padded_x = load_pickle('tokenized/learn/padded_x.pickle')
     unpadded_x = load_pickle('tokenized/learn/unpadded_x.pickle')
     max_tweet_word_count = load_pickle('tokenized/learn/max_tweet_word_count.pickle')
     vocab_size = load_pickle('tokenized/learn/vocab_size.pickle')
