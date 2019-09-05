@@ -19,7 +19,7 @@ def clean_text(tweets: List[str], lang: str = 'english') -> List[str]:
     stops = set(stopwords.words(lang))
 
     # no ! and .
-    table = str.maketrans(dict.fromkeys(""""#$%&'()*+,-/:;<=>?@[\\]^_`{|}~"""))
+    table = str.maketrans(dict.fromkeys(""""#$%&()*+,-/:;<=>?@[\\]^_`{|}~"""))
 
     for text in data:
         text = re.sub(r'https?://[^\s]*', ' tokenlink ', text)
