@@ -11,7 +11,7 @@ Im Pfad `bix/data/twitter/requirements.txt` liegt eine requirements.txt mit alle
 ## Kurze Version (Testen der Ergebnisse)
 Diese Anleitung beschriebt wo die erstellten Modelle und andere erstellte Artifakte heruntergeladen werden können und eine Sentimentanalyse auf aktuellen Twitterdaten durchgeführt werden kann.
  
-- Herunterladen des data-Ordners (` todo: pfad zu gdrive einfügen `) und verschieben des Ordners an die position `bix/data/twitter/data` im repo.
+- Herunterladen des data-Ordners (`https://drive.google.com/file/d/1xoN6OTQpxWM4qx8ZVexUnzcEqq6m2QuF/view?usp=sharing`) und verschieben des Ordners an die position `bix/data/twitter/data` im repo.
 - Ausführen des Skripts `bix/data/twitter/analysis/analyse_fresh_twitter.py` (Dies wendet die Sentimentanalyse auf die aktuellen von Twitter heruntergeladenen Hashtags #sad und #love an)
 
 ## Lange Version (Generieren und lernen der Modelle. Dauert ca. 2 - 4h)
