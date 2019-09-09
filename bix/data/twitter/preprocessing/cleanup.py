@@ -32,14 +32,9 @@ def clean_text(tweets: List[str], lang: str = 'english') -> List[str]:
         text = re.sub(r':D', ' tokenxcheer ', text)
         text = re.sub(r':-S', ' tokens ', text)
 
-        ## Remove puncuation
-        text = text.translate(table)
 
         ## Convert words to lower case and split them
         text = text.lower().split()
-
-        ## Remove stop words[^\s][^\s]
-        text = [w for w in text if not w in stops]
 
         text = " ".join(text)
 
@@ -74,7 +69,14 @@ def clean_text(tweets: List[str], lang: str = 'english') -> List[str]:
         text = re.sub(r"j k", "jk", text)
         text = re.sub(r"\s{2,}", " ", text)
 
+        ## Remove puncuation
+        text = text.translate(table)
+
         text = text.split()
+
+        ## Remove stop words[^\s][^\s]
+        #text = [w for w in text if not w in stops]
+
         stemmer = SnowballStemmer(lang)
         stemmed_words = [stemmer.stem(word) for word in text]
         text = " ".join(stemmed_words)
