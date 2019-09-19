@@ -175,7 +175,7 @@ class Study():
                                                           classification_function=1, noise_percentage=0.1),
                             random_state=None,
                             position=250000,
-                            width=50000)
+                            width=1000)
 
             
         return [ra_mixed, rg_mixed, led_a, led_g, sea_a, sea_g]

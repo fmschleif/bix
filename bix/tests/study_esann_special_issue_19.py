@@ -11,6 +11,7 @@ from bix.evaluation.gridsearch import GridSearch
 from bix.evaluation.crossvalidation import CrossValidation
 from bix.classifiers.arslvq import ARSLVQ
 from skmultiflow.trees import HAT
+from bix.classifiers.rslvq import RSLVQ
 from skmultiflow.lazy import SAMKNN, KNN
 from skmultiflow.meta import OzaBagging, OzaBaggingAdwin, AdaptiveRandomForest
 from skmultiflow.data import LEDGeneratorDrift
@@ -89,6 +90,15 @@ def test():
     gs.streams = gs.init_real_world() + gs.init_standard_streams()  + gs.init_reoccuring_streams()+gs.init_reoccuring_standard_streams()
     gs.merge_summary()
 
+def test_rslvq():
+    from bix.classifiers.rrslvq import RRSLVQ
+    clf =[ RRSLVQ(prototypes_per_class=4,sigma=6,confidence=0.001)]
+    gs = CrossValidation(clfs=clf)
+    gs.streams = gs.init_real_world() + gs.init_standard_streams()  +gs.init_reoccuring_standard_streams()
+    gs.test()
+    gs.save_summary()
+
+
 def test_grid():
     clfs = [
             AdaptiveRandomForest(), 
@@ -99,9 +109,50 @@ def test_grid():
     cv.streams = cv.init_real_world() + cv.init_standard_streams()  + cv.init_reoccuring_standard_streams()
     cv.test()
     cv.save_summary()
+def test_led():
+    led_a = ConceptDriftStream(stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=3),
+                               drift_stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0,
+                                                              n_drift_features=7),
+                               random_state=None,
+                               alpha=90.0,  # angle of change grade 0 - 90
+                               position=250000,
+                               width=1)
+
+    led_a.name = "led_a"
+    led_g = ConceptDriftStream(stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=3),
+                               drift_stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0,
+                                                              n_drift_features=7),
+                               random_state=None,
+                               position=250000,
+                               width=50000)
+    led_g.name = "led_g"
+    led_fa = ReoccuringDriftStream(stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=3),
+                                  drift_stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0,
+                                                                 n_drift_features=7),
+                                  random_state=None,
+                                  alpha=90.0,  # angle of change grade 0 - 90
+                                  position=2000,
+                                  width=1)
+
+    led_fg = ReoccuringDriftStream(stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0, n_drift_features=3),
+                                  drift_stream=LEDGeneratorDrift(has_noise=False, noise_percentage=0.0,
+                                                                 n_drift_features=7),
+                                  random_state=None,
+                                  position=2000,
+                                  width=1000)
+
+    np = 2
+    sigma = 3
+    clfs = [ARSLVQ(prototypes_per_class=np, sigma=sigma, confidence=0.0001, window_size=1500), OzaBaggingAdwin(),
+            AdaptiveRandomForest(), HAT(), RSLVQ(prototypes_per_class=np,sigma=sigma), SAMKNN()]
+
+    cv = CrossValidation(clfs=clfs,parallel=1)
+    cv.streams = [led_a,led_g,led_fa,led_fg]
+    cv.search()
+    cv.save_summary()
 
 
 if __name__ == "__main__":
    # test_parameter_grid_search_arslvq()
    #test_missing_streams()
-   test_grid()
+    test_led()
