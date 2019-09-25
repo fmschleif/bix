@@ -152,3 +152,7 @@ bix/tests/fivetwo/*
 bix/transfer_learning/prototypes.py
 bix/datasets/domain_adaptation/images/*
 bix/evaluation/ESANN_SI/*
+
+
+bix/twitter/learn/*
+bix/twitter/tokenized/*

@@ -2,7 +2,7 @@ import os
 from datetime import date, timedelta
 import unittest
 
-from bix.data.twitter.twitter_retriever import TwitterRetriever
+from bix.twitter import TwitterRetriever
 
 
 class TestTwitterQueryResults(unittest.TestCase):
