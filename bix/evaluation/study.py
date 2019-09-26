@@ -180,6 +180,85 @@ class Study():
             
         return [ra_mixed, rg_mixed, led_a, led_g, sea_a, sea_g]
 
+    def init_esann_si_streams(self):
+        mixed1 = MIXEDGenerator(classification_function=0, random_state=112, balance_classes=False)
+        mixed2 = MIXEDGenerator(classification_function=1, random_state=112, balance_classes=False)
+        ra_mixed = ReoccuringDriftStream(stream=mixed1, drift_stream=mixed2, random_state=112, alpha=90.0,
+                                         position=2000, width=1)
+        rg_mixed = ReoccuringDriftStream(stream=mixed1, drift_stream=mixed2, random_state=112, alpha=90.0,
+                                         position=2000, width=1000)
+
+
+        sea_ra = ReoccuringDriftStream(stream=SEAGenerator(random_state=112, noise_percentage=0.1),
+                                      drift_stream=SEAGenerator(random_state=112,
+                                                                classification_function=2, noise_percentage=0.1),
+                                      alpha=90.0,
+                                      random_state=None,
+                                      position=250000,
+                                      width=1)
+
+        sea_rg = ReoccuringDriftStream(stream=SEAGenerator(random_state=112, noise_percentage=0.1),
+                                      drift_stream=SEAGenerator(random_state=112,
+                                                                classification_function=1, noise_percentage=0.1),
+                                      random_state=None,
+                                      position=250000,
+                                      width=1000)
+        mixed1 = MIXEDGenerator(classification_function=0, random_state=112, balance_classes=False)
+        mixed2 = MIXEDGenerator(classification_function=1, random_state=112, balance_classes=False)
+        a_mixed = ConceptDriftStream(stream=mixed1, drift_stream=mixed2, random_state=112, alpha=90.0, position=2000,
+                                      width=1)
+        g_mixed = ConceptDriftStream(stream=mixed1, drift_stream=mixed2, random_state=112, alpha=90.0, position=2000,
+                                      width=1000)
+        rg_mixed.name = "mixed_g"
+        ra_mixed.name = "mixed_a"
+
+        hyper = HyperplaneGenerator(mag_change=0.001, noise_percentage=0.1)
+        rand_tree = RandomTreeGenerator()
+        rand_tree.name = "rand_tree"
+        rbf_if = RandomRBFGeneratorDrift(change_speed=0.001)
+        rbf_if.name = "rbf_if"
+        rbf_im = RandomRBFGeneratorDrift(change_speed=0.0001)
+        rbf_im.name = "rbf_im"
+        sea_a = ConceptDriftStream(stream=SEAGenerator(random_state=112, noise_percentage=0.1),
+                                   drift_stream=SEAGenerator(random_state=112,
+                                                             classification_function=2, noise_percentage=0.1),
+                                   alpha=90.0,
+                                   random_state=None,
+                                   position=250000,
+                                   width=1)
+        sea_a.name = "sea_a"
+        sea_g = ConceptDriftStream(stream=SEAGenerator(random_state=112, noise_percentage=0.1),
+                                   drift_stream=SEAGenerator(random_state=112,
+                                                             classification_function=1, noise_percentage=0.1),
+                                   random_state=None,
+                                   position=250000,
+                                   width=50000)
+        sea_g.name = "sea_g"
+
+        """Initialize real world data streams, will be loaded from file"""
+
+        if not os.path.join("..", "..", "datasets"):
+            raise FileNotFoundError("Folder for data cannot be found! Should be datasets")
+        os.chdir(os.path.join("..", "..", "datasets"))
+        try:
+            covertype = FileStream(os.path.realpath('covtype.csv'))  # Label failure
+            covertype.name = "covertype"
+            elec = FileStream(os.path.realpath('elec.csv'))
+            elec.name = "elec"
+            poker = FileStream(os.path.realpath('poker.csv'))  # label failure
+            poker.name = "poker"
+            weather = FileStream(os.path.realpath('weather.csv'))
+            weather.name = "weather"
+            gmsc = FileStream(os.path.realpath('gmsc.csv'))
+            gmsc.name = "gmsc"
+            #  airlines = FileStream(os.path.realpath('airlines.csv')) #label failure
+            moving_squares = FileStream(os.path.realpath('moving_squares.csv'))
+            moving_squares.name = "moving_squares"
+
+        except Exception as e:
+            raise FileNotFoundError("Real-world datasets can't loaded! Check directory ")
+        return [covertype, elec, poker, weather, gmsc, moving_squares,a_mixed, g_mixed, hyper, rand_tree, rbf_if, rbf_im, sea_a, sea_g,ra_mixed, rg_mixed,  sea_ra, sea_rg,]
+
     def init_real_world(self):
         """Initialize real world data streams, will be loaded from file"""
     

@@ -1,5 +1,4 @@
-
-#!/usr/bin/env python3
+# !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Wed May 29 15:35:11 2019
@@ -21,6 +20,7 @@ from sklearn.utils.validation import check_is_fitted
 from scipy.spatial.distance import cdist
 from bix.detectors.kswin import KSWIN
 from skmultiflow.drift_detection.adwin import ADWIN
+
 
 class ARSLVQ(ClassifierMixin, BaseEstimator):
     """Reactive Robust Soft Learning Vector Quantization
@@ -60,10 +60,10 @@ class ARSLVQ(ClassifierMixin, BaseEstimator):
     """
 
     def __init__(self, prototypes_per_class=1, initial_prototypes=None,
-                 sigma=1.0, random_state=112, drift_detector = "KS", confidence=0.05, 
-                 gamma:float=0.9, replace : bool = True, window_size:int=200):
+                 sigma=1.0, random_state=112, drift_detector="KS", confidence=0.05,
+                 gamma: float = 0.9, replace: bool = True, window_size: int = 200, stat_size: int = 30):
         self.sigma = sigma
-        
+
         self.random_state = random_state
         self.initial_prototypes = initial_prototypes
         self.prototypes_per_class = prototypes_per_class
@@ -75,11 +75,11 @@ class ARSLVQ(ClassifierMixin, BaseEstimator):
         self.counter = 0
         self.cd_detects = []
         self.drift_detector = drift_detector
-        self.drift_detected  = False
+        self.drift_detected = False
         self.replace = replace
         self.init_drift_detection = True
         self.window_size = window_size
-        
+        self.stat_size = stat_size
         #### Adadelta ####
         self.decay_rate = gamma
         self.epsilon = 1e-8
@@ -89,67 +89,68 @@ class ARSLVQ(ClassifierMixin, BaseEstimator):
 
         if self.drift_detector != "KS" and self.drift_detector != "DIST" and self.drift_detector != "ADWIN":
             raise ValueError("Drift detector must be either KS, ADWIN or DIST!")
-        
+
         if self.confidence <= 0 or self.confidence >= 1:
             raise ValueError("Confidence of test must be between 0 and 1!")
 
         if self.sigma < 0:
             raise ValueError("Sigma must be greater than zero")
 
-    def _optimize(self, x, y, random_state):    
+    def _optimize(self, x, y, random_state):
         """Implementation of Adadelta"""
         n_data, n_dim = x.shape
         nb_prototypes = self.c_w_.size
         prototypes = self.w_.reshape(nb_prototypes, n_dim)
-        
+
         for i in range(n_data):
             xi = x[i]
             c_xi = y[i]
             for j in range(prototypes.shape[0]):
                 d = (xi - prototypes[j])
-                
+
                 if self.c_w_[j] == c_xi:
                     gradient = (self._p(j, xi, prototypes=self.w_, y=c_xi) -
-                                 self._p(j, xi, prototypes=self.w_)) * d
+                                self._p(j, xi, prototypes=self.w_)) * d
                 else:
                     gradient = - self._p(j, xi, prototypes=self.w_) * d
-                    
-                 # Accumulate gradient
+
+                # Accumulate gradient
                 self.squared_mean_gradient[j] = self.decay_rate * self.squared_mean_gradient[j] + \
-                            (1 - self.decay_rate) * gradient ** 2
-                
+                                                (1 - self.decay_rate) * gradient ** 2
+
                 # Compute update/step
                 step = ((self.squared_mean_step[j] + self.epsilon) / \
-                          (self.squared_mean_gradient[j] + self.epsilon)) ** 0.5 * gradient
-                          
+                        (self.squared_mean_gradient[j] + self.epsilon)) ** 0.5 * gradient
+
                 # Accumulate updates
                 self.squared_mean_step[j] = self.decay_rate * self.squared_mean_step[j] + \
-                (1 - self.decay_rate) * step ** 2
-                    
+                                            (1 - self.decay_rate) * step ** 2
+
                 # Attract/Distract prototype to/from data point
-                self.w_[j] += step        
-#            """Implementation of Stochastical Gradient Descent"""
-#            n_data, n_dim = X.shape
-#            nb_prototypes = self.c_w_.size
-#            prototypes = self.w_.reshape(nb_prototypes, n_dim)
-#
-#            for i in range(n_data):
-#                xi = X[i]
-#                c_xi = y[i]
-#                for j in range(prototypes.shape[0]):
-#                    d = (xi - prototypes[j])
-#                    c = 1/ self.sigma
-#                    if self.c_w_[j] == c_xi:
-#                        # Attract prototype to data point
-#                        self.w_[j] += c * (self._p(j, xi, prototypes=self.w_, y=c_xi) -
-#                                     self._p(j, xi, prototypes=self.w_)) * d
-#                    else:
-#                        # Distance prototype from data point
-#                        self.w_[j] -= c * self._p(j, xi, prototypes=self.w_) * d
-     
+                self.w_[j] += step
+            #            """Implementation of Stochastical Gradient Descent"""
+
+    #            n_data, n_dim = X.shape
+    #            nb_prototypes = self.c_w_.size
+    #            prototypes = self.w_.reshape(nb_prototypes, n_dim)
+    #
+    #            for i in range(n_data):
+    #                xi = X[i]
+    #                c_xi = y[i]
+    #                for j in range(prototypes.shape[0]):
+    #                    d = (xi - prototypes[j])
+    #                    c = 1/ self.sigma
+    #                    if self.c_w_[j] == c_xi:
+    #                        # Attract prototype to data point
+    #                        self.w_[j] += c * (self._p(j, xi, prototypes=self.w_, y=c_xi) -
+    #                                     self._p(j, xi, prototypes=self.w_)) * d
+    #                    else:
+    #                        # Distance prototype from data point
+    #                        self.w_[j] -= c * self._p(j, xi, prototypes=self.w_) * d
+
     def _costf(self, x, w, **kwargs):
-        d = (x - w)[np.newaxis].T 
-        d = d.T.dot(d) 
+        d = (x - w)[np.newaxis].T
+        d = d.T.dot(d)
         return -d / (2 * self.sigma)
 
     def _p(self, j, e, y=None, prototypes=None, **kwargs):
@@ -167,11 +168,10 @@ class ARSLVQ(ClassifierMixin, BaseEstimator):
         o = np.math.exp(
             self._costf(e, prototypes[j], **kwargs) - fs_max) / s
         return o
-    
+
     def get_prototypes(self):
         """Returns the prototypes"""
         return self.w_
-
 
     def predict(self, x):
         """Predict class membership index for each input sample.
@@ -185,15 +185,15 @@ class ARSLVQ(ClassifierMixin, BaseEstimator):
         C : array, shape = (n_samples,)
             Returns predicted values.
         """
-        return np.array([self.c_w_[np.array([self._costf(xi,p) for p in self.w_]).argmax()] for xi in x])
-    
+        return np.array([self.c_w_[np.array([self._costf(xi, p) for p in self.w_]).argmax()] for xi in x])
+
     def posterior(self, y, x):
         """
         calculate the posterior for x:
          p(y|x)
         Parameters
         ----------
-        
+
         y: class
             label
         x: array-like, shape = [n_features]
@@ -214,41 +214,41 @@ class ARSLVQ(ClassifierMixin, BaseEstimator):
                   self.c_w_[i] == y])
         s2 = sum([self._costf(x, w) for w in self.w_])
         return s1 / s2
-    
+
     def get_info(self):
         return 'RSLVQ'
-    
+
     def predict_proba(self, X):
         """ predict_proba
-        
-        Predicts the probability of each sample belonging to each one of the 
+
+        Predicts the probability of each sample belonging to each one of the
         known target_values.
-        
+
         Parameters
         ----------
         X: Numpy.ndarray of shape (n_samples, n_features)
             A matrix of the samples we want to predict.
-        
+
         Returns
         -------
         numpy.ndarray
-            An array of shape (n_samples, n_features), in which each outer entry is 
-            associated with the X entry of the same index. And where the list in 
+            An array of shape (n_samples, n_features), in which each outer entry is
+            associated with the X entry of the same index. And where the list in
             index [i] contains len(self.target_values) elements, each of which represents
             the probability that the i-th sample of X belongs to a certain label.
-        
+
         """
         return 'Not implemented'
-    
+
     def reset(self):
         self.__init__()
-        
+
     def _validate_train_parms(self, train_set, train_lab, classes=None):
         random_state = validation.check_random_state(self.random_state)
         train_set, train_lab = validation.check_X_y(train_set, train_lab.ravel())
 
-        if(self.initial_fit):
-            if(classes):
+        if (self.initial_fit):
+            if (classes):
                 self.classes_ = np.asarray(classes)
                 self.protos_initialized = np.zeros(self.classes_.size)
             else:
@@ -262,7 +262,7 @@ class ARSLVQ(ClassifierMixin, BaseEstimator):
         if isinstance(self.prototypes_per_class, int) or isinstance(self.prototypes_per_class, np.int64):
             if self.prototypes_per_class < 0 or not isinstance(
                     self.prototypes_per_class, int) and not isinstance(
-                    self.prototypes_per_class, np.int64):
+                self.prototypes_per_class, np.int64):
                 # isinstance(self.prototypes_per_class, np.int64) fixes the singleton array array (1) is ... bug of gridsearch parallel
                 raise ValueError("prototypes_per_class must be a positive int")
             # nb_ppc = number of protos per class
@@ -281,7 +281,7 @@ class ARSLVQ(ClassifierMixin, BaseEstimator):
                     " does not fit the number of classes"
                     "classes=%d"
                     "length=%d" % (nb_classes, nb_ppc.size))
-        
+
         # initialize prototypes
         if self.initial_prototypes is None:
             if self.initial_fit:
@@ -290,8 +290,8 @@ class ARSLVQ(ClassifierMixin, BaseEstimator):
             pos = 0
             for actClassIdx in range(len(self.classes_)):
                 actClass = self.classes_[actClassIdx]
-                nb_prot = nb_ppc[actClassIdx] # nb_ppc: prototypes per class
-                if(self.protos_initialized[actClassIdx] == 0 and actClass in unique_labels(train_lab)):
+                nb_prot = nb_ppc[actClassIdx]  # nb_ppc: prototypes per class
+                if (self.protos_initialized[actClassIdx] == 0 and actClass in unique_labels(train_lab)):
                     mean = np.mean(
                         train_set[train_lab == actClass, :], 0)
                     self.w_[pos:pos + nb_prot] = mean + (
@@ -370,86 +370,90 @@ class ARSLVQ(ClassifierMixin, BaseEstimator):
             X, y, random_state = self._validate_train_parms(
                 X, y, classes=classes)
         else:
-            raise ValueError('Class {} was not learned - please declare all classes in first call of fit/partial_fit'.format(y))
+            raise ValueError(
+                'Class {} was not learned - please declare all classes in first call of fit/partial_fit'.format(y))
 
         self.counter = self.counter + 1
-        if self.drift_detector is not None and self.concept_drift_detection(X,y):
-            self.cd_handling(X,y)
+        if self.drift_detector is not None and self.concept_drift_detection(X, y):
+            self.cd_handling(X, y)
             self.cd_detects.append(self.counter)
         # X = preprocessing.scale(X)
         self._optimize(X, y, self.random_state)
         return self
 
-    def save_data(self,X,y,random_state):
+    def save_data(self, X, y, random_state):
         pd.DataFrame(self.w_).to_csv("Prototypes.csv")
         pd.DataFrame(self.c_w_).to_csv("Prototype_Labels.csv")
         pd.DataFrame(X).to_csv("Data.csv")
         pd.DataFrame(y).to_csv("Labels.csv")
         self._optimize(X, y, random_state)
         pd.DataFrame(self.w_).to_csv("Prototypes1.csv")
-        pd.DataFrame(self.c_w_).to_csv("Prototype_Labels1.csv")    
+        pd.DataFrame(self.c_w_).to_csv("Prototype_Labels1.csv")
 
-    def calcDistances(self,pts,x):
+    def calcDistances(self, pts, x):
         dists = []
         for p in pts:
             for elem in x:
-                dists.append(np.linalg.norm(p-elem))
+                dists.append(np.linalg.norm(p - elem))
         return np.max(dists)
 
-    def concept_drift_detection(self,X,Y):
+    def concept_drift_detection(self, X, Y):
         if self.init_drift_detection:
             if self.drift_detector == "KS":
-                self.cdd = [KSWIN(alpha=self.confidence, w_size=self.window_size) for elem in X.T]
+                self.cdd = [KSWIN(alpha=self.confidence, w_size=self.window_size, stat_size=self.stat_size) for elem in
+                            X.T]
             if self.drift_detector == "ADWIN":
                 self.cdd = [ADWIN(delta=self.confidence) for elem in X.T]
             if self.drift_detector == "DIST":
                 self.cdd = [KSWIN(self.confidence, w_size=self.window_size) for c in self.classes_]
         self.init_drift_detection = False
         self.drift_detected = False
-        
+
         if self.drift_detector == "DIST":
             try:
-                class_prototypes = [self.w_[self.c_w_==elem] for elem in self.classes_]
-                new_distances = dict([(c,self.calcDistances(pts,X[Y==c])) for c,pts in zip(self.classes_,class_prototypes)])
-                for (c,d_new), detector in zip(new_distances.items(), self.cdd):
+                class_prototypes = [self.w_[self.c_w_ == elem] for elem in self.classes_]
+                new_distances = dict(
+                    [(c, self.calcDistances(pts, X[Y == c])) for c, pts in zip(self.classes_, class_prototypes)])
+                for (c, d_new), detector in zip(new_distances.items(), self.cdd):
                     detector.add_element(d_new)
                     if detector.detected_change():
-                         self.drift_detected = True
-            except Exception: 
+                        self.drift_detected = True
+            except Exception:
                 print("Warning: Current Batch does not contain all labels!")
-                #ValueError('zero-size array to reduction operation maximum which has no identity',)
+                # ValueError('zero-size array to reduction operation maximum which has no identity',)
                 # In this batch not every label is present
         else:
-            if not self.init_drift_detection: 
-                for elem,detector in zip(X.T,self.cdd):
+            if not self.init_drift_detection:
+                for elem, detector in zip(X.T, self.cdd):
                     for e in elem:
                         detector.add_element(e)
                         if detector.detected_change():
                             self.drift_detected = True
-        
-        
+
         return self.drift_detected
-   
-    def cd_handling(self, X,Y):
-#        print('cd handling')
+
+    def cd_handling(self, X, Y):
+        #        print('cd handling')
         if self.replace:
-            labels = np.concatenate([np.repeat(l,self.prototypes_per_class) for l in self.classes_])        
+            labels = np.concatenate([np.repeat(l, self.prototypes_per_class) for l in self.classes_])
             # new_prototypes = np.repeat(np.array([self.geometric_median(np.array([detector.window[-30:] for detector in self.cdd]).T)]),len(labels),axis=0)
-            new_prototypes = np.array([np.mean(np.array([detector.window[-30:] for detector in self.cdd]),axis=1) for l in labels]) 
+            new_prototypes = np.array(
+                [np.mean(np.array([detector.window[-self.stat_size:] for detector in self.cdd]), axis=1) for l in labels])
             self.w_ = new_prototypes
             self.c_w_ = labels
             if type(self.initial_prototypes) == np.ndarray:
-                self.initial_prototypes = np.append(new_prototypes,labels[:,None],axis=1)
+                self.initial_prototypes = np.append(new_prototypes, labels[:, None], axis=1)
         else:
-            labels = self.classes_  
+            labels = self.classes_
             new_prototypes = np.array([self.geometric_median(X[Y == l]) for l in labels])
-            self.w_ = np.append(self.w_,new_prototypes,axis=0)
-            self.c_w_ = np.append(self.c_w_,labels,axis=0)
+            self.w_ = np.append(self.w_, new_prototypes, axis=0)
+            self.c_w_ = np.append(self.c_w_, labels, axis=0)
             self.prototypes_per_class = self.prototypes_per_class + 1
             if type(self.initial_prototypes) == np.ndarray:
-                self.initial_prototypes = np.append(self.initial_prototypes,np.append(new_prototypes,labels[:,None],axis=1),axis=0)    
-    
-    def geometric_median(self,points):
+                self.initial_prototypes = np.append(self.initial_prototypes,
+                                                    np.append(new_prototypes, labels[:, None], axis=1), axis=0)
+
+    def geometric_median(self, points):
         """
     Calculates the geometric median of an array of points.
     'minimize' -- scipy.optimize the sum of distances
