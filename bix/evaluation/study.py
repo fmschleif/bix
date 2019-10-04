@@ -209,8 +209,8 @@ class Study():
                                       width=1)
         g_mixed = ConceptDriftStream(stream=mixed1, drift_stream=mixed2, random_state=112, alpha=90.0, position=2000,
                                       width=1000)
-        rg_mixed.name = "mixed_g"
-        ra_mixed.name = "mixed_a"
+        a_mixed.name = "mixed_g"
+        g_mixed.name = "mixed_a"
 
         hyper = HyperplaneGenerator(mag_change=0.001, noise_percentage=0.1)
         rand_tree = RandomTreeGenerator()
