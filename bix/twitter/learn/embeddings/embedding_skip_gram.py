@@ -26,8 +26,8 @@ class EmbeddingSkipGram(EmbeddingAbstract):
         EmbeddingSkipGram.vocab_size = vocab_size
 
     def prepare(self):
-        self.grams_x = load_pickle('tokenized/learn/grams_x.pickle')#[0:100000]
-        self.grams_y = load_pickle('tokenized/learn/grams_y.pickle')#[0:100000]
+        #self.grams_x = load_pickle('tokenized/learn/grams_x.pickle')#[0:100000]
+        #self.grams_y = load_pickle('tokenized/learn/grams_y.pickle')#[0:100000]
         pass
 
     def define_model(self):

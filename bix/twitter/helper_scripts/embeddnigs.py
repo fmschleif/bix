@@ -6,7 +6,7 @@ from bix.twitter.base.utils import load_pickle, load_model_mat
 
 import numpy as np
 
-from bix.twitter import load_tokenizer
+from bix.twitter.learn.tokenizer.tokenizer_utils import load_tokenizer
 
 validation_model = None
 

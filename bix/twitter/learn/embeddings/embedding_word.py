@@ -2,6 +2,7 @@ from typing import List
 
 from keras import Sequential
 from keras.layers import Embedding, Flatten, Dense
+from keras.utils import np_utils
 from keras_preprocessing.text import Tokenizer
 from numpy import asarray, zeros
 
@@ -14,6 +15,7 @@ class EmbeddingWord(EmbeddingAbstract):
 
         self.embedding_vector_size = 100
         self.weights = None
+        self.enc_y = np_utils.to_categorical(y)
 
     def prepare(self):
         # nothing
@@ -24,9 +26,9 @@ class EmbeddingWord(EmbeddingAbstract):
         model = Sequential()
         model.add(Embedding(self.vocab_size, self.embedding_vector_size, input_length=self.max_tweet_word_count))
         model.add(Flatten())
-        model.add(Dense(1, activation='sigmoid'))
+        model.add(Dense(len(self.enc_y[0]), activation='softmax'))
         # compile the model
-        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
+        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc'])
         # summarize the model
         print(model.summary())
 
@@ -34,9 +36,9 @@ class EmbeddingWord(EmbeddingAbstract):
 
     def learn(self):
         # fit the model
-        self.model.fit(self.x, self.y, epochs=100, verbose=2, batch_size=1024)  # training
+        self.model.fit(self.x, self.enc_y, epochs=100, verbose=2, batch_size=1024)  # training
         # evaluate the model
-        loss, accuracy = self.model.evaluate(self.x, self.y, verbose=2)
+        loss, accuracy = self.model.evaluate(self.x, self.enc_y, verbose=2)
         print('Accuracy: %f' % (accuracy * 100))
 
         # fit the model

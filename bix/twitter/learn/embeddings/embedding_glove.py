@@ -21,7 +21,7 @@ class EmbeddingGlove(EmbeddingAbstract):
     def prepare(self):
         # load the whole embedding into memory
         embeddings_index = dict()
-        f = open('learn/glove.twitter.27B.100d.txt')
+        f = open('glove.twitter.27B.100d.txt')
         for line in f:
             values = line.split()
             word = values[0]

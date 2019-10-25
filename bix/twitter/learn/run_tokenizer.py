@@ -1,5 +1,5 @@
 from bix.twitter.base.utils import load_csv, encode_embed_docs, save_csv, save_pickle
-from bix.twitter import tokenize, save_tokenizer
+from bix.twitter.learn.tokenizer.tokenizer_utils import tokenize, save_tokenizer
 
 if __name__ == '__main__':
     x = load_csv('learn/tweets.csv')
@@ -9,7 +9,7 @@ if __name__ == '__main__':
     padded_x, unpadded_x = encode_embed_docs(x, tok)
     max_tweet_word_count = len(padded_x[0])
 
-    save_tokenizer(tok, 'learn')
+    save_tokenizer(tok)
     save_csv('tokenized/learn/lables.csv', y)
     save_pickle(padded_x, 'tokenized/learn/padded_x.pickle')
     save_pickle(unpadded_x, 'tokenized/learn/unpadded_x.pickle')

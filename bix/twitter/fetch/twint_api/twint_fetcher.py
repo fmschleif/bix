@@ -15,9 +15,11 @@ class TwintFetcher(AbstractFetcher):
         c.Store_object = True
         c.Since = "{:%Y-%m-%d}".format(date_)
         c.Until = "{:%Y-%m-%d}".format(date_ + timedelta(days=1))
+        c.Limit = config.max_tweets_per_fetch if config.max_tweets_per_fetch != 0 else None
 
         twint.output.tweets_object = []
         twint.run.Search(c)
         result = twint.output.tweets_object
         tweets = [t.tweet for t in result]
         self.save_tweets(tweets, query_string, date_)
+        return tweets

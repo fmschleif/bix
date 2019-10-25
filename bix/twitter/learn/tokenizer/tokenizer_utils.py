@@ -4,7 +4,7 @@ from typing import List
 from keras_preprocessing.text import Tokenizer
 
 
-def tokenize(data: List[str], verbose: bool = False) -> (Tokenizer, int):
+def tokenize(data: List[str], verbose: bool = False) -> Tokenizer:
 
     # 545409 is big
     t = Tokenizer(filters='!"„“…»«#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n', num_words=25000)
@@ -26,20 +26,18 @@ def tokenize(data: List[str], verbose: bool = False) -> (Tokenizer, int):
         for e, n in sorted(t.word_counts.items(), key=lambda x: x[1])[-9:]:
             print('\t' + str(e) + ': ' + str(n))
 
-    return t, t.num_words
+    return t
 
 
-def save_tokenizer(tok: Tokenizer, name: str):
+def save_tokenizer(tok: Tokenizer):
     from bix.twitter.base.utils import create_path_if_not_exists
     # saving
-    create_path_if_not_exists('tokenized')
-    create_path_if_not_exists(f'tokenized/{name}')
-    with open(f'tokenized/{name}/tok.pickle', 'wb') as handle:
+    with open(f'tok.pickle', 'wb') as handle:
         pickle.dump(tok, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def load_tokenizer(name: str) -> Tokenizer:
+def load_tokenizer() -> Tokenizer:
     # loading
-    with open(f'tokenized/{name}/tok.pickle', 'rb') as handle:
+    with open(f'tok.pickle', 'rb') as handle:
         tokenizer = pickle.load(handle)
         return tokenizer

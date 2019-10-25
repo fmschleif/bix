@@ -8,11 +8,11 @@ from keras.preprocessing.text import Tokenizer
 from keras_preprocessing.sequence import pad_sequences
 
 
-from bix.twitter import load_tokenizer
+from bix.twitter.learn.tokenizer.tokenizer_utils import load_tokenizer
 
 
 def generate_hashtag_path(hashtag: str) -> str:
-    return f'hashtag_{hashtag}'
+    return f'{hashtag}'
 
 
 def generate_csv_name(date_: date) -> str:
@@ -58,14 +58,14 @@ def load_pickle(path: str):
 
 
 def save_model_mat(nparray, model_name: str):
-    create_path_if_not_exists('models')
-    #np.save(nparray, f'models/{model_name}.npy')
-    save_pickle(nparray, f'models/{model_name}.pickle')
+    #create_path_if_not_exists('models')
+    np.save(f'{model_name}.npy', nparray)
+    #save_pickle(nparray, f'models/{model_name}.pickle')
 
 
 def load_model_mat(model_name: str):
-    #np.load(nparray, f'models/{model_name}.npy')
-    return load_pickle(f'models/{model_name}.pickle')
+    return np.load(f'{model_name}.npy')
+    #return load_pickle(f'models/{model_name}.pickle')
 
 
 def encode_embed_docs(x: List[str], tokenizer: Tokenizer, max_tweets=None):
@@ -79,12 +79,12 @@ def encode_embed_docs(x: List[str], tokenizer: Tokenizer, max_tweets=None):
 
 
 def load_training_sentiment_data():
-    t = load_tokenizer('learn')
+    t = load_tokenizer()
     y = load_csv('tokenized/learn/lables.csv')
     padded_x = load_pickle('tokenized/learn/padded_x.pickle')
     unpadded_x = load_pickle('tokenized/learn/unpadded_x.pickle')
     max_tweet_word_count = load_pickle('tokenized/learn/max_tweet_word_count.pickle')
-    vocab_size = load_pickle('tokenized/learn/vocab_size.pickle')
+    vocab_size = t.num_words
     return t, y, padded_x, unpadded_x, max_tweet_word_count, vocab_size
 
 

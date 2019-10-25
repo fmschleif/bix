@@ -8,7 +8,7 @@ from twitter import TwitterError
 
 from bix.twitter.fetch.abstract_fetcher import AbstractFetcher
 from bix.twitter.fetch.fetch_config import FetchConfig
-from bix.twitter.fetch.twitter_api import TWITTER_CONFIG
+from bix.twitter.fetch.twitter_api.config import TWITTER_CONFIG
 
 
 class TwitterApiFetcher(AbstractFetcher):

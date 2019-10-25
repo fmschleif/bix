@@ -1,7 +1,7 @@
 from sklearn.model_selection import train_test_split
 
 from bix.twitter.base.utils import load_csv, encode_embed_docs, save_pickle, load_pickle, save_csv
-from bix.twitter import load_tokenizer
+from bix.twitter.learn.tokenizer.tokenizer_utils import load_tokenizer
 
 if __name__ == '__main__':
     print('loading saved state')

@@ -1,4 +1,4 @@
-from bix.twitter import load_tokenizer
+from bix.twitter.learn.tokenizer.tokenizer_utils import load_tokenizer
 
 import matplotlib.pyplot as plt
 
