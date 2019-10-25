@@ -17,7 +17,7 @@ if __name__ == '__main__':
     hashtags = ['brexit', 'lol']
     config = FetchConfig()
     config.from_date = date.today() # fetch all tweets from today
-    config.to_date = date.today() + timedelta(days=1) # to_date is exclusive
+    config.to_date = date.today() + timedelta(days=2) # to_date is exclusive
     config.max_tweets_per_fetch = 10
     tweets = download_tweets_twint(hashtags, config)
 

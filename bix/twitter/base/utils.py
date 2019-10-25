@@ -31,6 +31,9 @@ def daterange(start_date: date, end_date: date):
 
 
 def load_csv(path: str) -> List[Any]:
+    if os.stat(path).st_size == 0:
+        return []
+
     file_df = pandas.read_csv(path, header=None)
     return [l[0] for l in file_df.values.tolist()]
 

@@ -48,11 +48,11 @@ def train_model_convolutional(x, y, embedding_mats):
     # model.add(Dense(1, activation='sigmoid'))
 
     # word
-    # input = Input(shape=(max_tweet_word_count,))
+    input = Input(shape=(max_tweet_word_count,))
     xs = []
     for mat in embedding_mats:
-        xs += Embedding(vocab_size, mat[0].shape[1], input_length=max_tweet_word_count,
-                       weights=mat, trainable=False)(input)
+        xs.append(Embedding(vocab_size, mat[0].shape[1], input_length=max_tweet_word_count,
+                       weights=mat, trainable=False)(input))
 
     combined = concatenate(xs)
     z = Conv1D(100, 5, activation='relu')(combined)
