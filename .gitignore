@@ -153,6 +153,3 @@ bix/transfer_learning/prototypes.py
 bix/datasets/domain_adaptation/images/*
 bix/results/esann_special_issue_2019/*
 
-
-bix/twitter/learn/*
-bix/twitter/tokenized/*
