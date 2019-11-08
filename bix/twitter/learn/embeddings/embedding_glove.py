@@ -1,6 +1,9 @@
+import os
 from typing import List
 
 import tensorflow
+import urllib.request
+import zipfile
 from keras import Sequential
 from keras.layers import Embedding, Flatten, Dense
 from keras_preprocessing.text import Tokenizer
@@ -21,6 +24,16 @@ class EmbeddingGlove(EmbeddingAbstract):
     def prepare(self):
         # load the whole embedding into memory
         embeddings_index = dict()
+
+        if not os.path.isfile('glove.twitter.27B.100d.txt'):
+            print('file: glove.twitter.27B.100d.txt does not exist. Downloading it...')
+            urllib.request.urlretrieve('http://nlp.stanford.edu/data/glove.twitter.27B.zip', 'glove.twitter.27B.zip')
+            print('finished downloading')
+            print('unpacking...')
+            with zipfile.ZipFile('glove.twitter.27B.zip', 'r') as zip_ref:
+                zip_ref.extractall('.')
+            print('finished unpacking')
+
         f = open('glove.twitter.27B.100d.txt')
         for line in f:
             values = line.split()
