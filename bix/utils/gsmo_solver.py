@@ -4,7 +4,7 @@ import copy
 
 
 class GSMO:
-    def __init__(self, A, b, C, d, r, R, optimization_type, max_iters, epsilon):
+    def __init__(self, A, b, C, d, r, R, optimization_type='minimize', max_iters=1000, epsilon=0.0001, step_size=1):
         # optimize F: x'Ax + b'x  s.t.  Cx=d, x elements [r,R]^n
         self.A = A
         self.b = b
@@ -27,6 +27,7 @@ class GSMO:
 
         self.max_iters = max_iters
         self.epsilon = epsilon
+        self.step_size = step_size
 
     def solve(self):
         for t in range(self.max_iters):
@@ -48,9 +49,9 @@ class GSMO:
                     dx_best_S_best = dx_S_best
                 S.remove(j)
 
-            S_best = copy.copy(S).append(j_best)
-            self.x[S_best] += dx_best_S_best
-            self.gradient += (self.A + self.A.transpose() + np.diag(self.b))[:, S_best].dot(dx_best_S_best)
+            S.append(j_best)
+            self.x[S] += dx_best_S_best
+            self.gradient += self.step_size * (self.A + self.A.transpose() + np.diag(self.b))[:, S].dot(dx_best_S_best)
 
             if dF_best < self.epsilon:
                 break
