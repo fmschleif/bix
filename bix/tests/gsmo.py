@@ -6,6 +6,8 @@ from bix.utils.gsmo_solver import GSMO
 class TESTGSMO(unittest.TestCase):
     def test_init_x(self):
         # Arrange
+        C = np.array([-1, 1, -1])
+        d = 0
         x_solution = [0.75, 1.5, 0.75]
 
         # Act

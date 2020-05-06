@@ -29,7 +29,6 @@ class GSMO:
         bounds = tuple([(self.r, self.R) for i in range(self.n)])
         self.x = minimize(linearEquation, x0=tuple([1 for _ in range(self.n)]), args=(self.C, self.d), method='SLSQP',
                           bounds=bounds).x
-        print(self.x)
         # self.x = np.empty((self.n, 1))
         # initial gradient
         self.gradient = (self.A + self.A.transpose()).dot(self.x) + self.b
