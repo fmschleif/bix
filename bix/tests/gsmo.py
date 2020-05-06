@@ -1,6 +1,5 @@
 import unittest
 import numpy as np
-from scipy.optimize import minimize
 from bix.utils.gsmo_solver import GSMO
 
 class TESTGSMO(unittest.TestCase):
@@ -16,3 +15,6 @@ class TESTGSMO(unittest.TestCase):
         # Assert
         for x1, x2 in tuple(zip(x_solution, gsmo_solver.x)):
             self.assertAlmostEqual(x1, x2)
+
+if __name__ == '__main__':
+    unittest.main()
