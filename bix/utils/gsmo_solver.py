@@ -21,7 +21,13 @@ class GSMO:
         # size of working set
         self.K = np.linalg.matrix_rank(C) + 1
         # first guess such that Cx = d and x elements [r,R]^n
-        self.x = lsq_linear(C, d, bounds=(self.r, self.R)).x
+        result = lsq_linear(C, d, bounds=(self.r, self.R))
+        self.x = result.x
+        test_res = C.dot(self.x)
+        if not np.allclose(d, test_res):
+            raise ValueError(
+                "The Equation Cx=d was not solvable. expected " + np.array_str(d) + " , got " + np.array_str(
+                    test_res))
         # initial gradient
         self.gradient = (self.A + self.A.transpose()).dot(self.x) + self.b
 
