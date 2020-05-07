@@ -1,11 +1,6 @@
 import numpy as np
 from scipy.linalg import null_space
-from scipy.optimize import minimize
-
-
-def linear_equation(x, arg1, arg2):
-    y = np.dot(arg1, x) - arg2
-    return np.dot(y, y)
+from scipy.optimize import lsq_linear
 
 
 class GSMO:
@@ -25,10 +20,8 @@ class GSMO:
         self.optimization_type = optimization_type
         # size of working set
         self.K = np.linalg.matrix_rank(C) + 1
-        # TODO: first guess such that Cx = d and x elements [r,R]^n
-        bounds = tuple([(self.r, self.R) for i in range(self.n)])
-        self.x = minimize(linear_equation, x0=tuple([1 for _ in range(self.n)]), args=(self.C, self.d), method='SLSQP',
-                          bounds=bounds).x
+        # first guess such that Cx = d and x elements [r,R]^n
+        self.x = lsq_linear(C, d, bounds=(self.r, self.R)).x
         # self.x = np.empty((self.n, 1))
         # initial gradient
         self.gradient = (self.A + self.A.transpose()).dot(self.x) + self.b
