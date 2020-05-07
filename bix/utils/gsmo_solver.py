@@ -4,7 +4,7 @@ from scipy.optimize import lsq_linear
 
 
 class GSMO:
-    def __init__(self, A, b, C, d, r, R, optimization_type='minimize', max_iters=1000, epsilon=0.0001, step_size=1):
+    def __init__(self, A, b, C, d, r, R, optimization_type='minimize', max_iter=1000, epsilon=0.0001, step_size=1):
         # optimize F: x'Ax + b'x  s.t.  Cx=d, x elements [r,R]^n
         self.A = A
         self.b = b
@@ -22,16 +22,15 @@ class GSMO:
         self.K = np.linalg.matrix_rank(C) + 1
         # first guess such that Cx = d and x elements [r,R]^n
         self.x = lsq_linear(C, d, bounds=(self.r, self.R)).x
-        # self.x = np.empty((self.n, 1))
         # initial gradient
         self.gradient = (self.A + self.A.transpose()).dot(self.x) + self.b
 
-        self.max_iters = max_iters
+        self.max_iter = max_iter
         self.epsilon = epsilon
         self.step_size = step_size
 
     def solve(self):
-        for t in range(self.max_iters):
+        for t in range(self.max_iter):
             S = self.__init_working_set()
             dF_best = 0
             j_best = -1
