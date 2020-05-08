@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.linalg import null_space
-from scipy.optimize import lsq_linear
+from scipy.optimize import lsq_linear, minimize
 
 
 class GSMO:
@@ -114,18 +114,46 @@ class GSMO:
 
     def __solve_small_QP(self, S):
         u_k = null_space(self.C[:, S])
-        a_k = self.__find_optimal_solution(self.x, self.dF, self.A, self.C, S)
+        a_k = self.__find_optimal_solution(S)
         dx_s = np.zeros((u_k.shape[0], 1))
         for idx, a in enumerate(a_k):
             dx_s += a * u_k[:, idx]
         return dx_s
 
-    def __find_optimal_solution(self, x, dF, A, C, S):
-        D = self.K - np.linalg.matrix_rank(C[:, S])
+    def __find_optimal_solution(self, S):
+        D = self.K - np.linalg.matrix_rank(self.C[:, S])
         bounds = []
         for i in range(D):
-            bounds.append(self.__get_bounds(i, x, C[:, S]))
+            bounds.append(self.__get_bounds(self.x[i]))
         bounds = tuple(bounds)
 
-    def __get_bounds(self, ):
-        pass
+        solution = minimize(fun=objective_function, x0=np.array([]), args=(D, S, self.A, self.gradient), bounds=bounds)
+        return solution.x
+
+    def __get_bounds(self, x_i):
+        a_min = self.r - x_i
+        a_max = self.R - x_i
+        return a_min, a_max
+
+
+def objective_function(a, args):
+    D = args[0]
+    S = args[1]
+    A = args[2]
+    grad = args[3]
+
+    sum1 = 0
+    for k in range(D):
+        sum1 += (a[k] * a[k]) * A[S[k], S[k]]
+
+    sum2 = 0
+    for k in range(D):
+        for i in range(D):
+            if not i == k:
+                sum2 += (a[k] * a[i]) * A[S[i], S[k]]
+
+    sum3 = 0
+    for k in range(D):
+        sum3 += a[k] * grad[S[k]]
+
+    return sum1 + sum2 + sum3
