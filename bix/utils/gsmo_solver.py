@@ -41,13 +41,14 @@ class GSMO:
             dF_best = 0
             j_best = -1
             dx_best_S_best = any
-            j_all = [i for i in range(self.n + 1)]
+            j_all = [i for i in range(self.n)]
             j_without_S = np.setdiff1d(j_all, S)
             for j in j_without_S:
                 S.append(j)
                 dx_S_best = self.__solve_small_QP(S)
                 dF_temp = abs(
-                    dx_S_best.transpose().dot(self.A[S, S]).dot(dx_S_best) + self.gradient[:, S].transpose().dot(
+                    dx_S_best.transpose().dot(self.A[:, S].transpose()[:, S].transpose()).dot(
+                        dx_S_best) + self.gradient[S].transpose().dot(
                         dx_S_best))
                 if dF_temp > dF_best:
                     dF_best = dF_temp
@@ -55,13 +56,20 @@ class GSMO:
                     dx_best_S_best = dx_S_best
                 S.remove(j)
 
+            if j_best == -1:
+                raise RuntimeError("cant find second best choice to optimise")
+
             S.append(j_best)
             self.x[S] += dx_best_S_best
             self.gradient += self.step_size * (self.A + self.A.transpose() + np.diag(self.b))[:, S].dot(dx_best_S_best)
 
             if dF_best < self.epsilon:
-                break
+                print("Delta F < EPSILON")
+                print(t)
+                print(dF_best)
+                return self.x
 
+        print("Max Iter reached")
         return self.x
 
     # first K - 1 Elements
@@ -69,7 +77,7 @@ class GSMO:
         S = []
         S_a = []
         S_i = []
-        v = np.empty((1, self.n), dtype=[('idx', int), ('val', float)])
+        v = np.empty((self.n,), dtype=[('idx', int), ('val', float)])
         for i in range(self.n):
             w_best = self.__find_optimal_gradient_displacement(self.x[i], self.gradient[i])
             v[i] = (i, abs((w_best - self.x[i]) * self.gradient[i]))
@@ -79,10 +87,12 @@ class GSMO:
             else:
                 S_i.append(i)
         if len(S_a) > self.K:
-            p = round(len(S_a) * 0.1)
+            p_upperbound = round(len(S_a) * 0.1)
+            p = np.random.choice([i for i in range(p_upperbound)], 1)[0]
+
             sorted_v = np.sort(v, order='val')
             for i in range(self.K - p - 1):
-                S.append(sorted_v[i][1])
+                S.append(sorted_v[i][0])
 
             intersection = np.setdiff1d(S_a, S)
             S.extend(np.random.choice(intersection, p))
@@ -116,18 +126,19 @@ class GSMO:
         u_k = null_space(self.C[:, S])
         a_k = self.__find_optimal_solution(S)
         dx_s = np.zeros((u_k.shape[0], 1))
-        for idx, a in enumerate(a_k):
+        for idx, a in np.ndenumerate(a_k):
             dx_s += a * u_k[:, idx]
-        return dx_s
+        return dx_s.reshape((dx_s.shape[0],))
 
     def __find_optimal_solution(self, S):
-        D = self.K - np.linalg.matrix_rank(self.C[:, S])
+        D = np.linalg.matrix_rank(self.C) - np.linalg.matrix_rank(self.C[:, S]) + 1
         bounds = []
         for i in range(D):
             bounds.append(self.__get_bounds(self.x[i]))
         bounds = tuple(bounds)
 
-        solution = minimize(fun=objective_function, x0=np.array([]), args=(D, S, self.A, self.gradient), bounds=bounds)
+        solution = minimize(fun=objective_function, x0=np.array([1] * D), args=(D, S, self.A, self.gradient),
+                            bounds=bounds)
         return solution.x
 
     def __get_bounds(self, x_i):
@@ -136,12 +147,7 @@ class GSMO:
         return a_min, a_max
 
 
-def objective_function(a, args):
-    D = args[0]
-    S = args[1]
-    A = args[2]
-    grad = args[3]
-
+def objective_function(a, D, S, A, grad):
     sum1 = 0
     for k in range(D):
         sum1 += (a[k] * a[k]) * A[S[k], S[k]]

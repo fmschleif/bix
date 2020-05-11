@@ -1,5 +1,8 @@
 import unittest
 import numpy as np
+import pandas as pd
+import os
+from sklearn.svm import SVC
 from bix.utils.gsmo_solver import GSMO
 
 
@@ -38,6 +41,65 @@ class TESTGSMO(unittest.TestCase):
         # Act
         with self.assertRaises(ValueError):
             GSMO(A=np.zeros((3, 3)), b=np.zeros((3, 1)), C=C, d=d, r=0, R=5)
+
+    def test_init_small_svm(self):
+        # Arrange
+        pwd = os.path.dirname(os.path.abspath(__file__))
+        test_data_file = os.path.join(pwd, "small_svm_problem_data.csv")
+        data = pd.read_csv(test_data_file, delimiter=',')
+        print(data)
+        A = np.zeros((data.shape[0], data.shape[0]))
+        points = data[['X', 'Y']]
+        y = data['Label']
+        for i in range(A.shape[0]):
+            for j in range(A.shape[0]):
+                A[i, j] = y.iloc[i] * y.iloc[j] * points.iloc[i].dot(points.iloc[j])
+
+        A = (-0.5) * A
+        b = np.ones((1, A.shape[0]))
+        C = y.to_numpy()
+        d = 0
+
+        # Act
+        gsmo_solver = GSMO(A, b, C, d, 0, 100)
+
+        # Assert
+        # Cx = d
+        result = C.dot(gsmo_solver.x)
+        np.testing.assert_almost_equal(d, result)
+
+    def test_solve_small_svm(self):
+        # Arrange
+        pwd = os.path.dirname(os.path.abspath(__file__))
+        test_data_file = os.path.join(pwd, "small_svm_problem_data.csv")
+        data = pd.read_csv(test_data_file, delimiter=',')
+        print(data)
+        A = np.zeros((data.shape[0], data.shape[0]))
+        points = data[['X', 'Y']]
+        y = data['Label']
+        for i in range(A.shape[0]):
+            for j in range(A.shape[0]):
+                A[i, j] = y.iloc[i] * y.iloc[j] * points.iloc[i].dot(points.iloc[j])
+
+        A = (-0.5) * A
+        b = np.ones((A.shape[0],))
+        C = y.to_numpy()
+        C_t = C.reshape((1, C.shape[0]))
+        d = 0
+        gsmo_solver = GSMO(A, b, C_t, d, 0, 1)
+
+        # Act
+        gsmo_solver.solve()
+        print(gsmo_solver.x.round(3))
+        # Assert
+        # Cx = d
+        result = C.dot(gsmo_solver.x)
+        np.testing.assert_almost_equal(d, result)
+
+        clf = SVC(C=1, kernel='linear')
+        clf.fit(points, y)
+        print(clf.dual_coef_)
+        print(clf.support_)
 
 
 if __name__ == '__main__':
