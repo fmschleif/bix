@@ -86,7 +86,7 @@ class TESTGSMO(unittest.TestCase):
         C = y.to_numpy()
         C_t = C.reshape((1, C.shape[0]))
         d = 0
-        gsmo_solver = GSMO(A, b, C_t, d, 0, 1)
+        gsmo_solver = GSMO(A, b, C_t, d, 0, 1, step_size=0.1)
 
         # Act
         gsmo_solver.solve()

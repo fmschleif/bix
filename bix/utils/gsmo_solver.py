@@ -65,8 +65,8 @@ class GSMO:
 
             if dF_best < self.epsilon:
                 print("Delta F < EPSILON")
-                print(t)
-                print(dF_best)
+                print(f'after iterations: {t}')
+                print(f'with last delta gradient: {dF_best}')
                 return self.x
 
         print("Max Iter reached")
@@ -74,35 +74,35 @@ class GSMO:
 
     # first K - 1 Elements
     def __init_working_set(self):
-        S = []
-        S_a = []
-        S_i = []
-        v = np.empty((self.n,), dtype=[('idx', int), ('val', float)])
+        working_set = []
+        active_set = []
+        inactive_set = []
+        gradient_displaced = np.empty((self.n,), dtype=[('idx', int), ('val', float)])
         for i in range(self.n):
             w_best = self.__find_optimal_gradient_displacement(self.x[i], self.gradient[i])
-            v[i] = (i, abs((w_best - self.x[i]) * self.gradient[i]))
+            gradient_displaced[i] = (i, abs((w_best - self.x[i]) * self.gradient[i]))
 
-            if not v[i] == 0:
-                S_a.append(i)
+            if not gradient_displaced[i][1] == 0:
+                active_set.append(i)
             else:
-                S_i.append(i)
-        if len(S_a) > self.K:
-            p_upperbound = round(len(S_a) * 0.1)
-            p = np.random.choice([i for i in range(p_upperbound)], 1)[0]
+                inactive_set.append(i)
+        if len(active_set) > self.K - 1:
+            p_upper_bound = round(len(active_set) * 0.1)
+            p = np.random.choice([i for i in range(p_upper_bound + 1)], 1)[0]
 
-            sorted_v = np.sort(v, order='val')
+            sorted_v = np.sort(gradient_displaced, order='val')
             for i in range(self.K - p - 1):
-                S.append(sorted_v[i][0])
+                working_set.append(sorted_v[i][0])
 
-            intersection = np.setdiff1d(S_a, S)
-            S.extend(np.random.choice(intersection, p))
+            active_without_working_set = np.setdiff1d(active_set, working_set)
+            working_set.extend(np.random.choice(active_without_working_set, p))
 
         else:
-            S.extend(S_a)
-            random_idx_count = self.K - 1 - len(S_a)
-            S.extend(np.random.choice(S_i, random_idx_count))
+            working_set.extend(active_set)
+            random_idx_count = self.K - 1 - len(active_set)
+            working_set.extend(np.random.choice(inactive_set, random_idx_count))
 
-        return S
+        return working_set
 
     def __find_optimal_gradient_displacement(self, x_i, df_i):
         choice_r = (self.r - x_i) * df_i
@@ -124,14 +124,13 @@ class GSMO:
 
     def __solve_small_QP(self, S):
         u_k = null_space(self.C[:, S])
-        a_k = self.__find_optimal_solution(S)
+        a_k = self.__find_optimal_solution(S, u_k.shape[1])
         dx_s = np.zeros((u_k.shape[0], 1))
         for idx, a in np.ndenumerate(a_k):
             dx_s += a * u_k[:, idx]
         return dx_s.reshape((dx_s.shape[0],))
 
-    def __find_optimal_solution(self, S):
-        D = np.linalg.matrix_rank(self.C) - np.linalg.matrix_rank(self.C[:, S]) + 1
+    def __find_optimal_solution(self, S, D):
         bounds = []
         for i in range(D):
             bounds.append(self.__get_bounds(self.x[i]))
