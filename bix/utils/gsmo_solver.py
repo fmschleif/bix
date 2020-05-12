@@ -65,7 +65,7 @@ class GSMO:
 
             if dF_best < self.epsilon:
                 print("Delta F < EPSILON")
-                print(f'after iterations: {t}')
+                print(f'after iterations: {t+1}')
                 print(f'with last delta gradient: {dF_best}')
                 return self.x
 

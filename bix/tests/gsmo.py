@@ -81,8 +81,8 @@ class TESTGSMO(unittest.TestCase):
             for j in range(A.shape[0]):
                 A[i, j] = y.iloc[i] * y.iloc[j] * points.iloc[i].dot(points.iloc[j])
 
-        A = (-0.5) * A
-        b = np.ones((A.shape[0],))
+        A = (0.5) * A
+        b = -np.ones((A.shape[0],))
         C = y.to_numpy()
         C_t = C.reshape((1, C.shape[0]))
         d = 0
@@ -90,7 +90,7 @@ class TESTGSMO(unittest.TestCase):
 
         # Act
         gsmo_solver.solve()
-        print(gsmo_solver.x.round(3))
+        print(gsmo_solver.x[gsmo_solver.x > 0.09].round(3))
         # Assert
         # Cx = d
         result = C.dot(gsmo_solver.x)
