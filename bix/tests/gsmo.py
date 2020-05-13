@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 import pandas as pd
 import os
+from scipy.optimize import minimize
 from sklearn.svm import SVC
 from bix.utils.gsmo_solver import GSMO
 
@@ -89,13 +90,22 @@ class TESTGSMO(unittest.TestCase):
         gsmo_solver = GSMO(A, b, C_t, d, 0, 1, step_size=0.1)
 
         # Act
+        print("SMO")
         gsmo_solver.solve()
-        print(gsmo_solver.x[gsmo_solver.x > 0.09].round(3))
+        print(gsmo_solver.x.round(3))
         # Assert
         # Cx = d
         result = C.dot(gsmo_solver.x)
         np.testing.assert_almost_equal(d, result)
 
+        fun = lambda x, H, f: x.transpose().dot(H).dot(x) + f.transpose().dot(x)
+        bnds = tuple([(0, 1) for i in range(A.shape[0])])
+        constr = ({'type': 'eq', 'args': C_t, 'fun': lambda x, c: c.transpose().dot(x)})
+        res = minimize(fun, np.ones((A.shape[0],)), args=(A, b), bounds=bnds, constraints=constr)
+        print("MINIMIZE")
+        print(res.x)
+
+        print("SVC")
         clf = SVC(C=1, kernel='linear')
         clf.fit(points, y)
         print(clf.dual_coef_)
