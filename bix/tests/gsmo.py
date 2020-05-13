@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 import pandas as pd
 import os
+import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 from sklearn.svm import SVC
 from bix.utils.gsmo_solver import GSMO
@@ -90,7 +91,7 @@ class TESTGSMO(unittest.TestCase):
         gsmo_solver = GSMO(A, b, C_t, d, 0, 1, step_size=0.1)
 
         # Act
-        print("SMO")
+        print("#### SMO  ####")
         gsmo_solver.solve()
         print(gsmo_solver.x.round(3))
         # Assert
@@ -102,14 +103,18 @@ class TESTGSMO(unittest.TestCase):
         bnds = tuple([(0, 1) for i in range(A.shape[0])])
         constr = ({'type': 'eq', 'args': C_t, 'fun': lambda x, c: c.transpose().dot(x)})
         res = minimize(fun, np.ones((A.shape[0],)), args=(A, b), bounds=bnds, constraints=constr)
-        print("MINIMIZE")
+        print("\n#### MINIMIZE ####")
         print(res.x)
 
-        print("SVC")
+        print("\n#### SVC ####")
         clf = SVC(C=1, kernel='linear')
         clf.fit(points, y)
         print(clf.dual_coef_)
         print(clf.support_)
+
+        plt.scatter(points['X'], points['Y'], c=y)
+        plt.scatter(points['X'].iloc[clf.support_], points['Y'].iloc[clf.support_], c='r')
+        plt.show()
 
 
 if __name__ == '__main__':
