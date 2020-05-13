@@ -15,7 +15,7 @@ class TESTGSMO(unittest.TestCase):
         d = 3
 
         # Act
-        gsmo_solver = GSMO(A=np.zeros((3, 3)), b=np.zeros((3, 1)), C=C, d=d, r=0, R=5)
+        gsmo_solver = GSMO(A=np.zeros((3, 3)), b=np.zeros((3, 1)), C=C, d=d, bounds=(0, 5))
 
         # Assert
         # Cx = d
@@ -28,7 +28,7 @@ class TESTGSMO(unittest.TestCase):
         d = np.array([3, 1])
 
         # Act
-        gsmo_solver = GSMO(A=np.zeros((3, 3)), b=np.zeros((3, 1)), C=C, d=d, r=0, R=5)
+        gsmo_solver = GSMO(A=np.zeros((3, 3)), b=np.zeros((3, 1)), C=C, d=d, bounds=(0, 5))
 
         # Assert
         # Cx = d
@@ -42,7 +42,7 @@ class TESTGSMO(unittest.TestCase):
 
         # Act
         with self.assertRaises(ValueError):
-            GSMO(A=np.zeros((3, 3)), b=np.zeros((3, 1)), C=C, d=d, r=0, R=5)
+            GSMO(A=np.zeros((3, 3)), b=np.zeros((3, 1)), C=C, d=d, bounds=(0, 5))
 
     def test_init_small_svm(self):
         # Arrange
@@ -63,7 +63,7 @@ class TESTGSMO(unittest.TestCase):
         d = 0
 
         # Act
-        gsmo_solver = GSMO(A, b, C, d, 0, 100)
+        gsmo_solver = GSMO(A, b, C, d, bounds=(0, 100))
 
         # Assert
         # Cx = d
@@ -88,27 +88,25 @@ class TESTGSMO(unittest.TestCase):
         C = y.to_numpy()
         C_t = C.reshape((1, C.shape[0]))
         d = 0
-        gsmo_solver = GSMO(A, b, C_t, d, 0, 1, step_size=0.1)
-
-        # Act
-        print("#### SMO  ####")
-        gsmo_solver.solve()
-        print(gsmo_solver.x.round(3))
-        # Assert
-        # Cx = d
-        result = C.dot(gsmo_solver.x)
-        np.testing.assert_almost_equal(d, result)
+        gsmo_solver = GSMO(A, b, C_t, d, bounds=(0, 1), step_size=0.1)
 
         fun = lambda x, H, f: x.transpose().dot(H).dot(x) + f.transpose().dot(x)
         bnds = tuple([(0, 1) for i in range(A.shape[0])])
         constr = ({'type': 'eq', 'args': C_t, 'fun': lambda x, c: c.transpose().dot(x)})
         res = minimize(fun, np.ones((A.shape[0],)), args=(A, b), bounds=bnds, constraints=constr)
+
+        clf = SVC(C=1, kernel='linear')
+        clf.fit(points, y)
+
+        # Act
+        print("#### SMO  ####")
+        gsmo_solver.solve()
+        print(gsmo_solver.x.round(3))
+
         print("\n#### MINIMIZE ####")
         print(res.x)
 
         print("\n#### SVC ####")
-        clf = SVC(C=1, kernel='linear')
-        clf.fit(points, y)
         print(clf.dual_coef_)
         print(clf.support_)
 
@@ -116,6 +114,30 @@ class TESTGSMO(unittest.TestCase):
         plt.scatter(points['X'].iloc[clf.support_], points['Y'].iloc[clf.support_], c='r')
         plt.show()
 
+        # Assert
+        # Cx = d
+        result = C.dot(gsmo_solver.x)
+        np.testing.assert_almost_equal(d, result)
+        np.testing.assert_almost_equal(gsmo_solver.x, res.x)
+
+    def test_small_qp_without_constraints(self):
+        # Arrange
+        A = np.array([[1, 0], [0, 1]])
+        b = np.array([1, -1]).reshape((2,))
+        gsmo_solver = GSMO(A=A, b=b, bounds=(None, None), step_size=0.1)
+        fun = lambda x, H, f: x.transpose().dot(H).dot(x) + f.transpose().dot(x)
+        # bnds = tuple([(0, 1) for i in range(A.shape[0])])
+        res = minimize(fun, np.ones((A.shape[0],)), args=(A, b))
+        print("\n#### MINIMIZE ####")
+        print(res.x)
+
+        # Act
+        print("#### SMO  ####")
+        gsmo_solver.solve()
+        print(gsmo_solver.x.round(3))
+
+        # Assert
+        np.testing.assert_almost_equal(gsmo_solver.x, res.x)
 
 if __name__ == '__main__':
     unittest.main()

@@ -4,33 +4,47 @@ from scipy.optimize import lsq_linear, minimize
 
 
 class GSMO:
-    def __init__(self, A, b, C, d, r, R, optimization_type='minimize', max_iter=1000, epsilon=0.0001, step_size=1):
+    def __init__(self, A, b, C=None, d=0, bounds=(None, None), optimization_type='minimize', max_iter=1000, epsilon=0.0001,
+                 step_size=1):
         # optimize F: x'Ax + b'x  s.t.  Cx=d, x elements [r,R]^n
         self.A = A
         self.b = b
-        self.C = C
-        self.d = d
-        # lower bound
-        self.r = r
-        # upper bound
-        self.R = R
         # number of components
         self.n = A.shape[1]
+        # lower bound
+        if bounds[0] is not None:
+            self.r = bounds[0]
+        else:
+            self.r = -10000
+        # upper bound
+        if bounds[1] is not None:
+            self.R = bounds[1]
+        else:
+            self.R = 10000
+        if C is not None:
+            self.C = C
+            # first guess such that Cx = d and x elements [r,R]^n
+            result = lsq_linear(C, d, bounds=(self.r, self.R))
+            self.x = result.x
+            test_res = C.dot(self.x)
+            if not np.allclose(d, test_res):
+                raise ValueError(
+                    "The Equation Cx=d was not solvable. expected " + np.array_str(d) + " , got " + np.array_str(
+                        test_res))
+        else:
+            self.C = np.zeros((1, self.n), dtype=float)
+            self.x = np.array([self.r] * self.n, dtype=float)
+        self.d = d
+
         # minimize or maximize
         self.optimization_type = optimization_type
+
         # size of working set
-        self.K = np.linalg.matrix_rank(C) + 1
-        # first guess such that Cx = d and x elements [r,R]^n
-        result = lsq_linear(C, d, bounds=(self.r, self.R))
-        self.x = result.x
-        test_res = C.dot(self.x)
-        if not np.allclose(d, test_res):
-            raise ValueError(
-                "The Equation Cx=d was not solvable. expected " + np.array_str(d) + " , got " + np.array_str(
-                    test_res))
+        self.K = np.linalg.matrix_rank(self.C) + 1
         # initial gradient
         self.gradient = (self.A + self.A.transpose()).dot(self.x) + self.b
 
+        # options
         self.max_iter = max_iter
         self.epsilon = epsilon
         self.step_size = step_size
@@ -65,7 +79,7 @@ class GSMO:
 
             if dF_best < self.epsilon:
                 print("Delta F < EPSILON")
-                print(f'after iterations: {t+1}')
+                print(f'after iterations: {t + 1}')
                 print(f'with last delta gradient: {dF_best}')
                 return self.x
 
