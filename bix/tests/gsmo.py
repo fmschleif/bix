@@ -88,7 +88,7 @@ class TESTGSMO(unittest.TestCase):
         C = y.to_numpy()
         C_t = C.reshape((1, C.shape[0]))
         d = 0
-        gsmo_solver = GSMO(A, b, C_t, d, bounds=(0, 1), step_size=0.1)
+        gsmo_solver = GSMO(A, b, C_t, d, bounds=(0, 10), step_size=0.1)
 
         fun = lambda x, H, f: x.transpose().dot(H).dot(x) + f.transpose().dot(x)
         bnds = tuple([(0, 1) for i in range(A.shape[0])])
@@ -124,7 +124,7 @@ class TESTGSMO(unittest.TestCase):
         # Arrange
         A = np.array([[1, 0], [0, 1]])
         b = np.array([1, -1]).reshape((2,))
-        gsmo_solver = GSMO(A=A, b=b, bounds=(None, None), step_size=0.1)
+        gsmo_solver = GSMO(A=A, b=b, bounds=(None, None), step_size=0.01)
         fun = lambda x, H, f: x.transpose().dot(H).dot(x) + f.transpose().dot(x)
         # bnds = tuple([(0, 1) for i in range(A.shape[0])])
         res = minimize(fun, np.ones((A.shape[0],)), args=(A, b))

@@ -1,10 +1,12 @@
 import numpy as np
 from scipy.linalg import null_space
 from scipy.optimize import lsq_linear, minimize
+from qpsolvers import solve_qp
 
 
 class GSMO:
-    def __init__(self, A, b, C=None, d=0, bounds=(None, None), optimization_type='minimize', max_iter=1000, epsilon=0.0001,
+    def __init__(self, A, b, C=None, d=0, bounds=(None, None), optimization_type='minimize', max_iter=1000,
+                 epsilon=0.0001,
                  step_size=1):
         # optimize F: x'Ax + b'x  s.t.  Cx=d, x elements [r,R]^n
         self.A = A
@@ -31,6 +33,7 @@ class GSMO:
                 raise ValueError(
                     "The Equation Cx=d was not solvable. expected " + np.array_str(d) + " , got " + np.array_str(
                         test_res))
+            # bounds?
         else:
             self.C = np.zeros((1, self.n), dtype=float)
             self.x = np.array([self.r] * self.n, dtype=float)
@@ -59,6 +62,7 @@ class GSMO:
             j_without_S = np.setdiff1d(j_all, S)
             for j in j_without_S:
                 S.append(j)
+                S = sorted(S)
                 dx_S_best = self.__solve_small_QP(S)
                 dF_temp = abs(
                     dx_S_best.transpose().dot(self.A[:, S].transpose()[:, S].transpose()).dot(
@@ -74,7 +78,7 @@ class GSMO:
                 raise RuntimeError("cant find second best choice to optimise")
 
             S.append(j_best)
-            self.x[S] += dx_best_S_best
+            self.x[S] += self.step_size * dx_best_S_best
             self.gradient += self.step_size * (self.A + self.A.transpose() + np.diag(self.b))[:, S].dot(dx_best_S_best)
 
             if dF_best < self.epsilon:
@@ -101,6 +105,7 @@ class GSMO:
             else:
                 inactive_set.append(i)
         if len(active_set) > self.K - 1:
+            # p random indices only when K > 10
             p_upper_bound = round(len(active_set) * 0.1)
             p = np.random.choice([i for i in range(p_upper_bound + 1)], 1)[0]
 
@@ -115,6 +120,8 @@ class GSMO:
             working_set.extend(active_set)
             random_idx_count = self.K - 1 - len(active_set)
             working_set.extend(np.random.choice(inactive_set, random_idx_count))
+        if len(working_set) > 0:
+            working_set = sorted(working_set)
 
         return working_set
 
@@ -137,22 +144,82 @@ class GSMO:
                 return self.R
 
     def __solve_small_QP(self, S):
-        u_k = null_space(self.C[:, S])
-        a_k = self.__find_optimal_solution(S, u_k.shape[1])
-        dx_s = np.zeros((u_k.shape[0], 1))
-        for idx, a in np.ndenumerate(a_k):
-            dx_s += a * u_k[:, idx]
-        return dx_s.reshape((dx_s.shape[0],))
+        if self.K == 1:
+            k = S[0]
+            alpha_min = self.r - self.x[k]
+            alpha_max = self.R - self.x[k]
+            beta = self.A[k, k]
+            gamma = self.gradient[k]
+            return self.solve_special_case(alpha_min, alpha_max, beta, gamma, k)
+        elif self.K == 2:
+            l = S[1]
+            k = S[0]
+            c_k = self.C[:, k][0]
+            c_l = self.C[:, l][0]
+            if (not c_k == 0) and (not c_l == 0):
+                w, W = (self.r, self.R) if c_k * c_l > 0 else (self.R, self.r)
+                alpha_min = max(self.r - self.x[l], ((self.x[k] - W) * c_k) / c_l)
+                alpha_max = min(self.R - self.x[l], ((self.x[k] - w) * c_k) / c_l)
+                beta = self.A[l, l]
+                gamma = self.gradient[l]
+                alpha_l = self.solve_special_case(alpha_min, alpha_max, beta, gamma, l)
+                alpha_k = - (alpha_l * c_l) / c_k
+                return np.array([alpha_k, alpha_l]).reshape((2,))
+        else:
+            u_k = null_space(self.C[:, S])
+            alpha_k = self.__find_optimal_solution(S, np.linalg.matrix_rank(self.C) - np.linalg.matrix_rank(
+                self.C[:, S]) + 1)
+            dx_s = np.zeros((u_k.shape[0], 1))
+            for idx, a in np.ndenumerate(alpha_k):
+                dx_s += a * u_k[:, idx]
+            return dx_s.reshape((dx_s.shape[0],))
+
+    def solve_special_case(self, alpha_min, alpha_max, beta, gamma, k):
+        # alpha = -(gamma)/2*beta if -(gamma)/2*beta in bounds amin,amax and beta < 0 (maximization) > 0 (minimization)
+
+        alpha = - gamma / 2 * beta
+        if alpha_min <= alpha <= alpha_max and ((self.optimization_type == 'maximize' and beta < 0) or (
+                self.optimization_type == 'minimize' and beta > 0)):
+            return alpha
+        else:
+            cost_amin = beta * alpha_min * alpha_min + gamma * alpha_min
+            cost_amax = beta * alpha_max * alpha_max + gamma * alpha_max
+            if self.optimization_type == 'maximize' and cost_amax >= cost_amin:
+                return alpha_max
+            elif self.optimization_type == 'maximize' and cost_amin >= cost_amax:
+                return alpha_min
+            elif self.optimization_type == 'minimize' and cost_amin <= cost_amax:
+                return alpha_min
+            else:
+                return alpha_max
 
     def __find_optimal_solution(self, S, D):
+        lo_bounds = []
+        up_bounds = []
         bounds = []
         for i in range(D):
-            bounds.append(self.__get_bounds(self.x[i]))
+            lb, ub = self.__get_bounds(self.x[i])
+            lo_bounds.append(lb)
+            up_bounds.append(ub)
+            bounds.append((lb, ub))
         bounds = tuple(bounds)
 
-        solution = minimize(fun=objective_function, x0=np.array([1] * D), args=(D, S, self.A, self.gradient),
-                            bounds=bounds)
-        return solution.x
+        S_d = S[:D]
+
+        P = self.A[:, S_d].transpose()[:, S_d].transpose()
+        q = self.gradient[S_d]
+        G = np.zeros((D,))
+        A = np.zeros((D,))
+        h = np.zeros((D,))
+        b = np.zeros((D,))
+        solution_quadprog = solve_qp(P=P, q=q,
+                                     G=G, A=A, h=h, b=b,
+                                     lb=np.array(lo_bounds),
+                                     ub=np.array(up_bounds))
+
+        solution_minimize = minimize(fun=objective_function, x0=np.array([1] * D), args=(D, S, self.A, self.gradient),
+                                     bounds=bounds)
+        return solution_quadprog
 
     def __get_bounds(self, x_i):
         a_min = self.r - x_i
